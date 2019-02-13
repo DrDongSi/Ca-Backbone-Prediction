@@ -456,9 +456,10 @@ def overlay_cas(set_of_ca_sets):
                             print('After: ' + str(next_ca_set[next_index]))
 
 
-# Simple Node class defining the location of a Ca atom along with which Ca atoms may be
-# connected to it. There may be any number of connected Ca atoms.
 class Node:
+    """Simple Node class defining the location of a Ca atom along with which Ca
+    atoms may be connected to it. There may be any number of connected Ca atoms."""
+
     def __init__(self, location):
         self.location = location
         self.edges = list()
@@ -475,10 +476,13 @@ class Node:
     def get_edges(self):
         return self.edges
 
-# Graph class that defines the full backbone-Ca structure of the protein. This class
-# contains functions used to clean and improve the predicted backbone structure as a
-# final step of post-processing.
+
 class Graph:
+    """Graph class that defines the full backbone-Ca structure of the protein
+
+    This class contains functions used to clean and improve the predicted
+    backbone structure as a final step of post-processing"""
+
     def __init__(self):
         self.nodes = list()
 
@@ -516,10 +520,10 @@ class Graph:
                 end_nodes.append(node)
         return end_nodes
 
-    # This method removes all nodes/edges that are connected to a node that have 3 or more
-    # edges. It also removes Nodes that are connected to other end Nodes (a pair of
-    # disconnected Ca atoms).
     def remove_single_ends(self):
+        """This method removes all nodes/edges that are connected to a node
+        that have 3 or more edges. It also removes Nodes that are connected
+        to other end Nodes (a pair of disconnected Ca atoms)."""
         for node in self.nodes:
             if node.get_num_edges() == 1: # This is a single connection
                 neighbor_node = self.get_node(node.get_edges()[0])
@@ -535,9 +539,11 @@ class Graph:
                             neighbor_node.edges.remove(node.get_location())
                             node.edges.remove(neighbor_node.get_location())
 
-    # Calculates the density of a trace. This is used to determine which trace should be removed when
-    # there are more than two traces coming out of a node.
     def calculate_density(self, walk_list, full_image, origin):
+        """Calculates the density of a trace
+
+        This is used to determine which trace should be removed when there are
+        more than two traces coming out of a node"""
         box_size = np.shape(full_image)
         steps = 10
         total_density = 0
@@ -564,9 +570,11 @@ class Graph:
                                 number_of_points += 1
         return total_density / number_of_points
 
-    # A recursive method used to find the end of a trace. An end of a trace is defined as the point where
-    # The trace ends or when the trace hits a Ca atom with 3 or more edges.
     def walk_until_trinary(self, location, visited):
+        """A recursive method used to find the end of a trace
+
+        An end of a trace is defined as the point where the trace ends or when
+        the trace hits a Ca atom with 3 or more edges"""
         node = self.get_node(location)
         visited.append(location)
         if node.get_num_edges() == 2:
@@ -575,9 +583,10 @@ class Graph:
                     visited = self.walk_until_trinary(edge, deepcopy(visited))
         return visited
 
-    # A recursive method similar to walk_until_trinary that finds the depth of trace. Also stops when it
-    # reaches a node that has 3 edges or a terminating node.
     def walk_graph(self, location, visited, depth):
+        """A recursive method similar to walk_until_trinary that finds the
+        depth of trace. Also stops when it reaches a node that has 3 edges
+        or a terminating node."""
         node = self.get_node(location)
         if node.get_num_edges() <= 2:
             visited.append(location)
@@ -614,9 +623,9 @@ class Graph:
                             self.remove_single_loop(list1)
                             done = True
 
-    # This method removes one side of a loop in the graph (a cycle). The side of the loop with the least
-    # density will be removed.
     def remove_loops(self, input_image, origin):
+        """This method removes one side of a loop in the graph (a cycle). The
+        side of the loop with the least density will be removed."""
         for node in self.nodes:
             if node.get_num_edges() >= 3: # This is a trinary connection
                 walk_lists = list()
@@ -633,22 +642,6 @@ class Graph:
                         if done:
                             break
 
-                        # This removed a loop at the end of trace that loops back to the main trinary node
-                        #if list1 != list2 and list1[len(list1) - 1] == list2[1]:
-                        #    density1 = self.calculate_density(list1, input_image, origin)
-                        #    density2 = self.calculate_density(list2, input_image, origin)
-                        #    if density1 < density2 and len(list1) <= 4:
-                        #        node1 = self.get_node(list1[0])
-                        #        node1.edges.remove(list1[1])
-                        #        node2 = self.get_node(list1[1])
-                        #        node2.edges.remove(list1[0])
-                        #    elif density2 < density1 and len(list2) <= 4:
-                        #        node1 = self.get_node(list2[0])
-                        #        node1.edges.remove(list2[1])
-                        #        node2 = self.get_node(list2[1])
-                        #        node2.edges.remove(list2[0])
-                        #    done = True
-
                         # This removed a loop along the backbone that ends in a different trinary node.
                         if list1 != list2 and list1[len(list1) - 1] == list2[len(list2) - 1]:
                             density1 = self.calculate_density(list1, input_image, origin)
@@ -659,9 +652,11 @@ class Graph:
                                 self.remove_pairs(list2[0], list2[1])
                             done = True
 
-    # This is a pathwalking method used to remove nodes from the graph. It is a helper function used
-    # by other methods in this file. Each call to this method will remove a single node from the graph.
     def remove_pairs(self, location_back, location_front):
+        """This is a path-walking method used to remove nodes from the graph
+
+        It is a helper function used by other methods in this file. Each call
+        to this method will remove a single node from the graph."""
         node1 = self.get_node(location_back)
         node1.edges.remove(location_front)
         node2 = self.get_node(location_front)
@@ -670,11 +665,13 @@ class Graph:
         if num_edges == 1:
             self.remove_pairs(location_front, node2.get_edges()[0]) # Should only be one left
 
-    # This method removes sides chains from the graph. This method looks for nodes that have
-    # three or more edges. It then calculates if a single trace connects to another node with
-    # three or more edges. If this is the case then this trace is likely a sidechain shortcut
-    # that should not exist. It is then removed by this method.
     def remove_side_chains(self):
+        """This method removes sides chains from the graph
+
+        This method looks for nodes that have three or more edges. It then
+        calculates if a single trace connects to another node with three or
+        more edges. If this is the case then this trace is likely a side chain
+        shortcut that should not exist. It is then removed by this method."""
         for node in self.nodes:
             if node.get_num_edges() >= 3: # This is a trinary connection
                 visited = list()
@@ -696,37 +693,14 @@ class Graph:
                 if min1 <= 3 and min2 - min1 >= 3: # remove from graph
                     self.remove_pairs(node.get_location(), min1_edge)
 
-    # This function removes empty nodes in the graph. (Garbage collection)
     def remove_empty_nodes(self):
+        """This function removes empty nodes in the graph. (Garbage collection)"""
         for node in self.nodes:
             if node.get_num_edges() == 0:
                 self.nodes.remove(node)
 
-    ## This method prints a specially formated .txt files that describes each node along with
-    ## all of the edges associated with that node.
-    #def print_graph_format(self):
-    #    writer = open('graph_output.txt', 'w')
-    #    three_edges = 0
-    #    single_edges = 0
-    #    for node in self.nodes:
-    #        if (node.get_num_edges() > 0):
-    #            writer.write(str(node.get_location()) + '\n')
-    #            writer.write('[')
-    #            edges = node.get_edges()
-    #            if len(edges) > 2:
-    #                three_edges += 1
-    #            if len(edges) == 1:
-    #                single_edges += 1
-    #            for edge in edges:
-    #                writer.write(str(edge))
-    #            writer.write(']')
-    #            writer.write('\n')
-    #            writer.write('\n')
-    #    writer.close()
-
-    # This method prints all traces in the graph to a single .PDB file. Each trace is given
-    # a different chain letter.
     def print_traces(self, sheet_image, helix_image, offset, pdb_file):
+        """This method prints all traces in the graph to a single .PDB file"""
         writer = open(pdb_file, 'w')
         already_written = list()
         set_of_traces = list()
@@ -846,9 +820,11 @@ class Graph:
         new_backbone = np.array(new_backbone, dtype=np.float32)
         return new_backbone
 
-    # This method prints the graph as a list of edges. There is no ordering in the graph. It is mearly a tool
-    # for getting a feel for each connection between each Ca atom.
     def print_graph(self, pdb_file):
+        """This method prints the graph as a list of edges
+
+        There is no ordering in the graph. It is merely a tool for getting a
+        feel for each connection between each Ca atom."""
         writer = open(pdb_file, 'w')
         already_written = list()
         counter = 1
@@ -864,10 +840,12 @@ class Graph:
         writer.close()
 
 
-# This function is not part of the Graph or Node class but it is essentially a wrapper method. This method is called
-# to turn an input .PDB file into a Graph representatin for later processing. This allows the prediction step to be
-# separated from the post-processing step. They do not have to be run concurrently.
 def make_graph(pdb_file):
+    """This function is not part of the Graph or Node class but it is
+    essentially a wrapper method. This method is called to turn an input .PDB
+    file into a Graph representation for later processing. This allows the
+    prediction step to be separated from the post-processing step. They do not
+    have to be run concurrently."""
     pdb_file = open(pdb_file, 'r')
     graph = Graph()
     previous_location = None
