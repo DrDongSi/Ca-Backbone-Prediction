@@ -727,7 +727,11 @@ class Graph:
                         sheet_traces.append(cur_sheet)
                         sheet_chains.append(cur_chain)
                         cur_sheet = None
-                writer.write('ATOM      1  CA  GLY A' + str(counter + cur_chain).rjust(4) + '    ' + '{0:.3f}'.format(ca[0]).rjust(8) + '{0:.3f}'.format(ca[1]).rjust(8) + '{0:.3f}'.format(ca[2]).rjust(8) + '  1.00  0.00           C  \n')
+                writer.write('ATOM      1  CA  GLY A' + str(counter + cur_chain).rjust(4) + '    ' +
+                             '{0:.3f}'.format(ca[0]).rjust(8) +
+                             '{0:.3f}'.format(ca[1]).rjust(8) +
+                             '{0:.3f}'.format(ca[2]).rjust(8) +
+                             '  1.00  0.00           C  \n')
                 counter += 1
             writer.write('TER\n')
 
@@ -743,7 +747,9 @@ class Graph:
             start = str(helix_traces[index][0] + chain)
             end = str(helix_traces[index][len(helix_traces[index]) - 1] + chain)
             length = str(len(helix_traces[index]))
-            writer.write('HELIX    1   1 GLY A ' + start.rjust(4) + '  GLY A ' + end.rjust(4) + '  1                                  ' + length + '\n')
+            writer.write('HELIX    1   1 GLY A ' + start.rjust(4) +
+                         '  GLY A ' + end.rjust(4) + '  1                                  ' +
+                         length + '\n')
 
         for index, trace in enumerate(sheet_traces):
             chain = sheet_chains[index]
@@ -761,8 +767,12 @@ class Graph:
         for node in self.nodes:
             for edge in node.get_edges():
                 node_location = node.get_location()
-                node_location = [int(node_location[2] - origin[2]), int(node_location[1] - origin[1]), int(node_location[0] - origin[0])] # Reverse it
-                edge_location = [int(edge[2] - origin[2]), int(edge[1] - origin[1]), int(edge[0] - origin[0])] # Reverse it
+                node_location = [int(node_location[2] - origin[2]),
+                                 int(node_location[1] - origin[1]),
+                                 int(node_location[0] - origin[0])] # Reverse it
+                edge_location = [int(edge[2] - origin[2]),
+                                 int(edge[1] - origin[1]),
+                                 int(edge[0] - origin[0])] # Reverse it
                 representation = repr(edge_location) + repr(node_location)
                 if representation not in already_written:
                     already_written.append(repr(node_location) + repr(edge_location))
@@ -771,14 +781,17 @@ class Graph:
                     y_step = (node_location[1] - edge_location[1]) / steps
                     z_step = (node_location[2] - edge_location[2]) / steps
                     for index in range(steps + 1):
-                        midpoints.append([edge_location[0] + x_step * index, edge_location[1] + y_step * index, edge_location[2] + z_step * index])
+                        midpoints.append([edge_location[0] + x_step * index,
+                                          edge_location[1] + y_step * index,
+                                          edge_location[2] + z_step * index])
                     for z in range(int(edge_location[2]) - 4, int(edge_location[2]) + 4): # 4 is kinda arbitrary here
                         for y in range(int(edge_location[1]) - 4, int(edge_location[1]) + 4):
                             for x in range(int(edge_location[0]) - 4, int(edge_location[0]) + 4):
                                 placed = False
                                 for index in range(len(midpoints)):
                                     if (box_size[2] > z >= 0 <= y < box_size[1] and 0 <= x < box_size[0] and
-                                        distance(z, midpoints[index][2], y, midpoints[index][1], x, midpoints[index][0]) <= 2
+                                        distance(z, midpoints[index][2], y, midpoints[index][1], x,
+                                                 midpoints[index][0]) <= 2
                                         and not placed):
                                         placed = True
                                         new_backbone[x][y][z] = backbone_image[x][y][z]
@@ -798,8 +811,16 @@ class Graph:
                 node_location = node.get_location()
                 representation = repr(edge) + repr(node_location)
                 if representation not in already_written:
-                    writer.write('ATOM      1  CA  GLY A' + str(counter).rjust(4) + '    ' + '{0:.3f}'.format(node_location[0]).rjust(8) + '{0:.3f}'.format(node_location[1]).rjust(8) + '{0:.3f}'.format(node_location[2]).rjust(8) + '  1.00  0.00           C  \n')
-                    writer.write('ATOM      1  CA  GLY A' + str(counter + 1).rjust(4) + '    ' + '{0:.3f}'.format(edge[0]).rjust(8) + '{0:.3f}'.format(edge[1]).rjust(8) + '{0:.3f}'.format(edge[2]).rjust(8) + '  1.00  0.00           C  \n')
+                    writer.write('ATOM      1  CA  GLY A' + str(counter).rjust(4) + '    ' +
+                                 '{0:.3f}'.format(node_location[0]).rjust(8) +
+                                 '{0:.3f}'.format(node_location[1]).rjust(8) +
+                                 '{0:.3f}'.format(node_location[2]).rjust(8) +
+                                 '  1.00  0.00           C  \n')
+                    writer.write('ATOM      1  CA  GLY A' + str(counter + 1).rjust(4) + '    ' +
+                                 '{0:.3f}'.format(edge[0]).rjust(8) +
+                                 '{0:.3f}'.format(edge[1]).rjust(8) +
+                                 '{0:.3f}'.format(edge[2]).rjust(8) +
+                                 '  1.00  0.00           C  \n')
                     counter += 3
                     already_written.append(repr(node_location) + repr(edge))
         writer.close()
@@ -815,14 +836,20 @@ def calculate_density(walk_list, full_image, origin):
     total_density = 0
     number_of_points = 0
     for i in range(len(walk_list) - 1):
-        start_point_trans = [walk_list[i][2] - origin[2], walk_list[i][1] - origin[1], walk_list[i][0] - origin[0]]
-        end_point_trans = [walk_list[i + 1][2] - origin[2], walk_list[i + 1][1] - origin[1], walk_list[i + 1][0] - origin[0]]
+        start_point_trans = [walk_list[i][2] - origin[2],
+                             walk_list[i][1] - origin[1],
+                             walk_list[i][0] - origin[0]]
+        end_point_trans = [walk_list[i + 1][2] - origin[2],
+                           walk_list[i + 1][1] - origin[1],
+                           walk_list[i + 1][0] - origin[0]]
         midpoints = list()
         x_step = (end_point_trans[0] - start_point_trans[0]) / steps
         y_step = (end_point_trans[1] - start_point_trans[1]) / steps
         z_step = (end_point_trans[2] - start_point_trans[2]) / steps
         for j in range(steps + 1):
-            midpoints.append([start_point_trans[0] + x_step * j, start_point_trans[1] + y_step * j, start_point_trans[2] + z_step * j])
+            midpoints.append([start_point_trans[0] + x_step * j,
+                              start_point_trans[1] + y_step * j,
+                              start_point_trans[2] + z_step * j])
         for z in range(int(start_point_trans[2]) - 4, int(start_point_trans[2]) + 4): # 4 is kinda arbitrary here
             for y in range(int(start_point_trans[1]) - 4, int(start_point_trans[1]) + 4):
                 for x in range(int(start_point_trans[0]) - 4, int(start_point_trans[0]) + 4):
