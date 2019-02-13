@@ -486,8 +486,8 @@ class Graph:
     def __init__(self):
         self.nodes = list()
 
-    def add_node(self, Node):
-        self.nodes.append(Node)
+    def add_node(self, node):
+        self.nodes.append(node)
 
     def contains_location(self, location):
         for node in self.nodes:
@@ -539,37 +539,6 @@ class Graph:
                             neighbor_node.edges.remove(node.get_location())
                             node.edges.remove(neighbor_node.get_location())
 
-    def calculate_density(self, walk_list, full_image, origin):
-        """Calculates the density of a trace
-
-        This is used to determine which trace should be removed when there are
-        more than two traces coming out of a node"""
-        box_size = np.shape(full_image)
-        steps = 10
-        total_density = 0
-        number_of_points = 0
-        for index in range(len(walk_list) - 1):
-            start_point_trans = [walk_list[index][2] - origin[2], walk_list[index][1] - origin[1], walk_list[index][0] - origin[0]]
-            end_point_trans = [walk_list[index + 1][2] - origin[2], walk_list[index + 1][1] - origin[1], walk_list[index + 1][0] - origin[0]]
-            midpoints = list()
-            x_step = (end_point_trans[0] - start_point_trans[0]) / steps
-            y_step = (end_point_trans[1] - start_point_trans[1]) / steps
-            z_step = (end_point_trans[2] - start_point_trans[2]) / steps
-            for index in range(steps + 1):
-                midpoints.append([start_point_trans[0] + x_step * index, start_point_trans[1] + y_step * index, start_point_trans[2] + z_step * index])
-            for z in range(int(start_point_trans[2]) - 4, int(start_point_trans[2]) + 4): # 4 is kinda arbitrary here
-                for y in range(int(start_point_trans[1]) - 4, int(start_point_trans[1]) + 4):
-                    for x in range(int(start_point_trans[0]) - 4, int(start_point_trans[0]) + 4):
-                        placed = False
-                        for index in range(len(midpoints)):
-                            if (z >= 0 and z < box_size[2] and y >= 0 and y < box_size[1] and x >= 0 and x < box_size[0] and
-                                distance(z, midpoints[index][2], y, midpoints[index][1], x, midpoints[index][0]) <= 1
-                                and not placed):
-                                placed = True
-                                total_density += full_image[x][y][z]
-                                number_of_points += 1
-        return total_density / number_of_points
-
     def walk_until_trinary(self, location, visited):
         """A recursive method used to find the end of a trace
 
@@ -600,7 +569,7 @@ class Graph:
         trinary_node.edges.remove(ca_list[1])
         trinary_node.edges.remove(ca_list[len(ca_list) - 1])
         for index, ca in enumerate(ca_list):
-            if (index > 0):
+            if index > 0:
                 to_be_removed = self.get_node(ca_list[index])
                 self.nodes.remove(to_be_removed)
 
@@ -644,8 +613,8 @@ class Graph:
 
                         # This removed a loop along the backbone that ends in a different trinary node.
                         if list1 != list2 and list1[len(list1) - 1] == list2[len(list2) - 1]:
-                            density1 = self.calculate_density(list1, input_image, origin)
-                            density2 = self.calculate_density(list2, input_image, origin)
+                            density1 = calculate_density(list1, input_image, origin)
+                            density2 = calculate_density(list2, input_image, origin)
                             if density1 < density2 and len(list1) <= 4:
                                 self.remove_pairs(list1[0], list1[1])
                             elif density2 < density1 and len(list2) <= 4:
@@ -679,18 +648,15 @@ class Graph:
                 min1 = 111 # Smallest
                 min1_edge = None
                 min2 = 999
-                min2_edge = None
                 for edge in node.get_edges():
                     value = self.walk_graph(edge, deepcopy(visited), 1)
                     if value < min2 and value < min1:
                         min2 = min1
-                        min2_edge = min1_edge
                         min1 = value
                         min1_edge = edge
                     elif value < min2:
                         min2 = value
-                        min2_edge = edge
-                if min1 <= 3 and min2 - min1 >= 3: # remove from graph
+                if min1 <= 3 <= min2 - min1: # remove from graph
                     self.remove_pairs(node.get_location(), min1_edge)
 
     def remove_empty_nodes(self):
@@ -716,12 +682,12 @@ class Graph:
                         if cur.get_num_edges() != 2:
                             break
                         else:
-                            tempNode = cur
+                            temp_node = cur
                             if cur.get_edges()[0] == previous.get_location():
                                 cur = self.get_node(cur.get_edges()[1])
                             else:
                                 cur = self.get_node(cur.get_edges()[0])
-                            previous = tempNode
+                            previous = temp_node
                     representation = repr(trace[0]) + repr(trace[len(trace) - 1])
                     if representation not in already_written:
                         set_of_traces.append(trace)
@@ -740,24 +706,24 @@ class Graph:
             for ca in trace:
                 ca_orig = [int(ca[2] - offset[2]), int(ca[1] - offset[1]), int(ca[0] - offset[0])]
                 if helix_image[ca_orig[0]][ca_orig[1]][ca_orig[2]] > 0:
-                    if cur_helix == None:
+                    if cur_helix is None:
                         cur_helix = list()
                         cur_helix.append(counter)
                     else:
                         cur_helix.append(counter)
                 else:
-                    if cur_helix != None:
+                    if cur_helix is not None:
                         helix_traces.append(cur_helix)
                         helix_chains.append(cur_chain)
                         cur_helix = None
                 if sheet_image[ca_orig[0]][ca_orig[1]][ca_orig[2]] > 0:
-                    if cur_sheet == None:
+                    if cur_sheet is None:
                         cur_sheet = list()
                         cur_sheet.append(counter)
                     else:
                         cur_sheet.append(counter)
                 else:
-                    if cur_sheet != None:
+                    if cur_sheet is not None:
                         sheet_traces.append(cur_sheet)
                         sheet_chains.append(cur_chain)
                         cur_sheet = None
@@ -765,10 +731,10 @@ class Graph:
                 counter += 1
             writer.write('TER\n')
 
-            if cur_helix != None: # Fence-Posting
+            if cur_helix is not None: # Fence-Posting
                 helix_traces.append(cur_helix)
                 helix_chains.append(cur_chain)
-            if cur_sheet != None: # Fence-Posting
+            if cur_sheet is not None: # Fence-Posting
                 sheet_traces.append(cur_sheet)
                 sheet_chains.append(cur_chain)
 
@@ -783,14 +749,13 @@ class Graph:
             chain = sheet_chains[index]
             start = str(sheet_traces[index][0] + chain)
             end = str(sheet_traces[index][len(sheet_traces[index]) - 1] + chain)
-            length = str(len(sheet_traces[index]))
             writer.write('SHEET    1   A 6 GLY A' + start.rjust(4) + '  GLY A' + end.rjust(4) + '  0\n')
 
         writer.close()
 
     def refine_backbone(self, backbone_image, origin):
         box_size = np.shape(backbone_image)
-        new_backbone = np.zeros((box_size))
+        new_backbone = np.zeros(box_size)
         steps = 10
         already_written = list()
         for node in self.nodes:
@@ -812,7 +777,7 @@ class Graph:
                             for x in range(int(edge_location[0]) - 4, int(edge_location[0]) + 4):
                                 placed = False
                                 for index in range(len(midpoints)):
-                                    if (z >= 0 and z < box_size[2] and y >= 0 and y < box_size[1] and x >= 0 and x < box_size[0] and
+                                    if (box_size[2] > z >= 0 <= y < box_size[1] and 0 <= x < box_size[0] and
                                         distance(z, midpoints[index][2], y, midpoints[index][1], x, midpoints[index][0]) <= 2
                                         and not placed):
                                         placed = True
@@ -840,6 +805,39 @@ class Graph:
         writer.close()
 
 
+def calculate_density(walk_list, full_image, origin):
+    """Calculates the density of a trace
+
+    This is used to determine which trace should be removed when there are
+    more than two traces coming out of a node"""
+    box_size = np.shape(full_image)
+    steps = 10
+    total_density = 0
+    number_of_points = 0
+    for i in range(len(walk_list) - 1):
+        start_point_trans = [walk_list[i][2] - origin[2], walk_list[i][1] - origin[1], walk_list[i][0] - origin[0]]
+        end_point_trans = [walk_list[i + 1][2] - origin[2], walk_list[i + 1][1] - origin[1], walk_list[i + 1][0] - origin[0]]
+        midpoints = list()
+        x_step = (end_point_trans[0] - start_point_trans[0]) / steps
+        y_step = (end_point_trans[1] - start_point_trans[1]) / steps
+        z_step = (end_point_trans[2] - start_point_trans[2]) / steps
+        for j in range(steps + 1):
+            midpoints.append([start_point_trans[0] + x_step * j, start_point_trans[1] + y_step * j, start_point_trans[2] + z_step * j])
+        for z in range(int(start_point_trans[2]) - 4, int(start_point_trans[2]) + 4): # 4 is kinda arbitrary here
+            for y in range(int(start_point_trans[1]) - 4, int(start_point_trans[1]) + 4):
+                for x in range(int(start_point_trans[0]) - 4, int(start_point_trans[0]) + 4):
+                    placed = False
+                    for j in range(len(midpoints)):
+                        if (box_size[2] > z >= 0 <= y < box_size[1] and 0 <= x < box_size[0] and
+                                    distance(z, midpoints[j][2], y, midpoints[j][1], x, midpoints[j][0]) <= 1
+                            and not placed):
+                            placed = True
+                            total_density += full_image[x][y][z]
+                            number_of_points += 1
+
+    return total_density / number_of_points
+
+
 def make_graph(pdb_file):
     """This function is not part of the Graph or Node class but it is
     essentially a wrapper method. This method is called to turn an input .PDB
@@ -851,7 +849,7 @@ def make_graph(pdb_file):
     previous_location = None
     cur_index = -1
     for line in pdb_file:
-        if (line.startswith("ATOM")):
+        if line.startswith("ATOM"):
             index = int(line[22:26])
             x = float(line[30:38])
             y = float(line[38:46])
