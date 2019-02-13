@@ -1,8 +1,20 @@
+"""This post-processing step will create a pdb file with the backbone trace from
+the predictions of the CNN
+
+The two main parts of this step is the 'confidence_walk' method, which takes the
+output from the CNN and walks the confidence regions of Ca and Backbone
+prediction to produce a series of traces that have a high-confidence of being
+the actual backbone in the protein, and the 'Graph' class through which the
+traces are refined.
+"""
+
 import mrcfile
 import numpy as np
 from copy import deepcopy
 import math
 from collections import deque
+
+__author__ = 'Spencer Moritz'
 
 
 def update_paths(paths):
@@ -76,7 +88,7 @@ def confidence_walk(prediction_image, offset, backbone_image, output_file):
     pdbId: ID of the given protein, used to prefix the file name when printing.
     ss_image: A 3D image containing the a-helix confidence image.
     backbone_image: A 3D image containing the backbone confidence prediction of the protein.
-    The primary loop of this function pathwalks the prediction image along the backbone
+    The primary loop of this function path-walks the prediction image along the backbone
     prediction. It finds areas of high confidence for Ca atoms and places an atom at each
     location. Once each trace has been founds, this function connects each trace and
     then prints the final graph to a file for further processing.
@@ -141,7 +153,7 @@ def find_highest_confidence_ca(remaining_image, set_of_ca_sets):
                     max_value = value
                     max_location = ca_set[index]
     if max_value <= 0:
-        # Only do this if we cannot find a good fit on the current backchain
+        # Only do this if we cannot find a good fit on the current back-chain
         box_size = np.shape(remaining_image)
         argmax = np.argmax(remaining_image)
         location = [0] * 3
@@ -230,14 +242,14 @@ def find_nearest_ca(previous_location, backbone_image, set_of_ca_sets, untouched
         score = density
         if (bfs_distance_image[coordinate[0], coordinate[1], coordinate[2]] < 100) and angle > 70:
             dictionary[score] = [coordinate[0], coordinate[1], coordinate[2]]
-    keylist = dictionary.keys()
-    sorted_keylist = list(sorted(keylist, reverse=True))
-    if len(sorted_keylist) == 0:
+    key_list = dictionary.keys()
+    sorted_key_list = list(sorted(key_list, reverse=True))
+    if len(sorted_key_list) == 0:
         return None
-    if sorted_keylist[0] <= 0:
+    if sorted_key_list[0] <= 0:
         return None
 
-    return dictionary.get(sorted_keylist[0])
+    return dictionary.get(sorted_key_list[0])
 
 
 def find_my_neighbors(set_of_ca_sets, location):
