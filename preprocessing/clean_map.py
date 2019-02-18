@@ -10,7 +10,9 @@ method
 
 import subprocess
 import os
+from threading import Lock
 
+lock = Lock()
 
 def update_paths(paths):
     paths['cleaned_map'] = paths['output'] + 'cleaned_map.mrc'
@@ -25,6 +27,8 @@ def execute(paths):
         Contains relevant paths for input and output files for the current
         prediction
     """
+    lock.acquire()
+
     chimera_script = open('resample.cmd', 'w')
     chimera_script.write('open ' + paths['input'] + '\n'
                          'open ' + paths['ground_truth'] + '\n'
@@ -37,3 +41,5 @@ def execute(paths):
 
     subprocess.run(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
     os.remove('resample.cmd')
+
+    lock.release()
