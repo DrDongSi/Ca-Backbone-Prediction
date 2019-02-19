@@ -39,7 +39,32 @@ def execute(paths):
                          'volume #3 save ' + paths['cleaned_map'])
     chimera_script.close()
 
-    subprocess.run(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
+    script_finished = False
+    while not script_finished:
+        try:
+            subprocess.run(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
+            script_finished = True
+        except FileNotFoundError as error:
+            if not create_symbolic_link():
+                raise error
+
     os.remove('resample.cmd')
 
     lock.release()
+
+def create_symbolic_link():
+    """Creates symbolic link to chimera bin in /usr/local/bin if user wants to
+
+    Returns
+    -------
+    link_created: bool
+        Indicates whether or not the symbolic link was created
+    """
+    print('It looks like there is no link to chimera in /usr/local/bin')
+    if input('Do you want to create one? (y/n) ') in ['y', 'yes']:
+        chimera_bin = input('Enter path to chimera bin file: ')
+        subprocess.run(['ln', '-s', chimera_bin, '/usr/local/bin/chimera'])
+
+        return True
+    else:
+        return False
