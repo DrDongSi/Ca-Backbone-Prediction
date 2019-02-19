@@ -8,6 +8,7 @@ import os
 from shutil import copyfile
 from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
+from time import time
 from evaluation import Evaluator
 import preprocessing as pre
 import cnn
@@ -51,10 +52,11 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip):
     args_list = [(input_path, output_path, thresholds_file, num_skip, evaluator, emdb_id)
                  for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
+    start_time = time()
     pool = ThreadPool(cpu_count())
     pool.map(run_prediction, args_list)
 
-    evaluator.create_report(output_path)
+    evaluator.create_report(output_path, time() - start_time)
 
 def run_prediction(args):
     """Coordinates the execution of every prediction step in the prediction
@@ -79,6 +81,7 @@ def run_prediction(args):
         'thresholds_file': thresholds_file
     }
 
+    start_time = time()
     for prediction_step in PREDICTION_PIPELINE:
         paths['output'] = output_path + emdb_id + '/' + prediction_step.__name__.split('.')[0] + '/'
         os.makedirs(paths['output'], exist_ok=True)
@@ -89,7 +92,7 @@ def run_prediction(args):
         else:
             num_skip -= 1
 
-    evaluator.calculate_accuracy(emdb_id, paths['traces_refined'], paths['ground_truth'])
+    evaluator.evaluate(emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time)
     copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
 
 

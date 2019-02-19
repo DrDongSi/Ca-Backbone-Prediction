@@ -1,6 +1,6 @@
 import math
 import xlwt
-
+from datetime import timedelta
 
 class Evaluator:
 
@@ -8,7 +8,7 @@ class Evaluator:
         self.evaluation_results = []
         self.input_path = input_path
 
-    def calculate_accuracy(self, emdb_id, predicted_file, gt_file):
+    def evaluate(self, emdb_id, predicted_file, gt_file, execution_time):
         """This method finds the closest pred_ca/gt_ca pair in the entire
         structure. Then removes them from the set and continues to find the next
         closest pair until all pairs with a distance of less than 3A have been
@@ -116,9 +116,10 @@ class Evaluator:
                                                         total_ca,
                                                         total_ca / native_ca_atoms,
                                                         math.sqrt(squared_sum / total_ca),
-                                                        incorrect))
+                                                        incorrect,
+                                                        execution_time))
 
-    def create_report(self, output_path):
+    def create_report(self, output_path, execution_time):
         """Creates excel document containing evaluation reports"""
         # Don't create report if there are no evaluation results
         if not self.evaluation_results:
@@ -134,6 +135,7 @@ class Evaluator:
         sh.write(0, 4, 'Matching Percentage')
         sh.write(0, 5, 'RMSD')
         sh.write(0, 6, 'Incorrect')
+        sh.write(0, 7, 'Execution Time')
 
         for i in range(len(self.evaluation_results)):
             sh.write(1 + i, 0, self.evaluation_results[i].name)
@@ -143,19 +145,25 @@ class Evaluator:
             sh.write(1 + i, 4, self.evaluation_results[i].matching_ca_per)
             sh.write(1 + i, 5, self.evaluation_results[i].rmsd)
             sh.write(1 + i, 6, self.evaluation_results[i].num_incorrect)
+            sh.write(1 + i, 7, str(timedelta(seconds=int(self.evaluation_results[i].execution_time))))
 
         rmsd_avg = sum(r.rmsd for r in self.evaluation_results) / len(self.evaluation_results)
         matching_ca_per_avg = sum(r.matching_ca_per for r in self.evaluation_results) / len(self.evaluation_results)
+        execution_time_avg = sum(r.execution_time for r in self.evaluation_results) / len(self.evaluation_results)
         sh.write(len(self.evaluation_results) + 1, 0, 'Avg.')
         sh.write(len(self.evaluation_results) + 1, 4, matching_ca_per_avg)
         sh.write(len(self.evaluation_results) + 1, 5, rmsd_avg)
+        sh.write(len(self.evaluation_results) + 1, 7, str(timedelta(seconds=int(execution_time_avg))))
+        sh.write(len(self.evaluation_results) + 2, 0, 'Total')
+        sh.write(len(self.evaluation_results) + 2, 7, str(timedelta(seconds=int(execution_time))))
 
         book.save(output_path + 'results.xls')
 
 
 class EvaluationResult:
 
-    def __init__(self, name, num_modeled_ca, num_native_ca, num_matching_ca, matching_ca_per, rmsd, num_incorrect):
+    def __init__(self, name, num_modeled_ca, num_native_ca, num_matching_ca, matching_ca_per, rmsd, num_incorrect,
+                 execution_time):
         self.name = name
         self.num_modeled_ca = num_modeled_ca
         self.num_native_ca = num_native_ca
@@ -163,6 +171,7 @@ class EvaluationResult:
         self.matching_ca_per = matching_ca_per
         self.rmsd = rmsd
         self.num_incorrect = num_incorrect
+        self.execution_time = execution_time
 
 
 def distance(z1, z2, y1, y2, x1, x2):
