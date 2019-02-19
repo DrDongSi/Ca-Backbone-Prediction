@@ -6,8 +6,7 @@ All prediction steps have to be added to the prediction pipeline.
 import sys
 import os
 from shutil import copyfile
-from multiprocessing import cpu_count
-from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing import cpu_count, Pool
 from time import time
 from evaluation import Evaluator
 import preprocessing as pre
@@ -46,15 +45,17 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip):
     num_skip: int
         The number of prediction steps that should be skipped
     """
-    evaluator = Evaluator(input_path)
-
     # Create list of arguments for every prediction
-    args_list = [(input_path, output_path, thresholds_file, num_skip, evaluator, emdb_id)
+    args_list = [(input_path, output_path, thresholds_file, num_skip, emdb_id)
                  for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
-    pool = ThreadPool(cpu_count())
-    pool.map(run_prediction, args_list)
+    pool = Pool(cpu_count())
+    results = pool.map(run_prediction, args_list)
+
+    evaluator = Evaluator(input_path)
+    for emdb_id, predicted_file, gt_file, execution_time in results:
+        evaluator.evaluate(emdb_id, predicted_file, gt_file, execution_time)
 
     evaluator.create_report(output_path, time() - start_time)
 
@@ -67,9 +68,15 @@ def run_prediction(args):
     args: tuple
         Tuple of arguments required for the prediction. They are unpacked at
         the beginning of the method
+
+    Returns
+    ----------
+    result: tuple
+        Result as tuple containing the emdb id, predicted file, ground truth
+        file, and execution time respectively
     """
     # Unpack parameters
-    input_path, output_path, thresholds_file, num_skip, evaluator, emdb_id = args
+    input_path, output_path, thresholds_file, num_skip, emdb_id = args
 
     mrc_file = get_file(input_path + emdb_id, ['mrc', 'map'])
     gt_file = get_file(input_path + emdb_id, ['pdb', 'ent'])
@@ -92,8 +99,9 @@ def run_prediction(args):
         else:
             num_skip -= 1
 
-    evaluator.evaluate(emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time)
     copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
+
+    return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
 
 
 def get_file(path, allowed_extensions):

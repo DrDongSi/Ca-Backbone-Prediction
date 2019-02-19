@@ -17,11 +17,8 @@ import math
 import cnn.map_splitter as ms
 from collections import deque
 import os
-from threading import Lock
 
 __author__ = 'Moritz Spencer'
-
-lock = Lock()
 
 
 def update_paths(paths):
@@ -33,8 +30,6 @@ def update_paths(paths):
 
 
 def execute(paths):
-    lock.acquire()
-
     with tf.Session() as sess:
         module_path = os.path.dirname(os.path.abspath(__file__)) + '/saved_module/5-7A_Full_SS_Combo/'
         saver = tf.train.import_meta_graph(module_path + 'saved_model.ckpt.meta')
@@ -155,8 +150,6 @@ def execute(paths):
             mrc.close()
 
         map.close()
-
-    lock.release()
 
 
 # Post-Processing step used to remove classification outliers in the secondary structure
