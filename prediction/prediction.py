@@ -50,7 +50,7 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip):
                  for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
-    pool = Pool(cpu_count())
+    pool = Pool(min(cpu_count(), len(args_list)))
     results = pool.map(run_prediction, args_list)
 
     evaluator = Evaluator(input_path)
