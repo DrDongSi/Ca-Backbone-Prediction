@@ -3,7 +3,7 @@
 The script accomplished the following:
 1. Load the pre-processed protein from an .MRC file
 2. Restore the saved prediction model from file.
-3. Runs the protein through the network using a splitting funtion for proteins larger than 64^3 in size.
+3. Runs the protein through the network using a splitting function for proteins larger than 64^3 in size.
 4. Prints the SS prediction maps, backbone prediction map, and Ca prediction map to file.
 5. Uses graph theory to improve the final backbone trace.
 6. Print the final traces to file.
@@ -34,8 +34,8 @@ def execute(paths):
         module_path = os.path.dirname(os.path.abspath(__file__)) + '/saved_module/5-7A_Full_SS_Combo/'
         saver = tf.train.import_meta_graph(module_path + 'saved_model.ckpt.meta')
         saver.restore(sess, module_path + 'saved_model.ckpt')  # Load the saved CNN.
-        map = mrcfile.open(paths['normalized_map'], mode='r')
-        full_image = deepcopy(map.data)
+        normalized_map = mrcfile.open(paths['normalized_map'], mode='r')
+        full_image = deepcopy(normalized_map.data)
 
         manifest = ms.create_manifest(full_image) # Create a 'manifest' to run through the CNN.
 
@@ -60,20 +60,22 @@ def execute(paths):
         backbone_image = np.zeros((np.shape(manifest)))
         ca_image = np.zeros((np.shape(manifest)))
 
-        print('Now start predition')
-        print('Len: ' + str(math.ceil(len(manifest) / 10)))
         # Run the protein through the CNN and save the output in a local placeholder.
         for index in range(math.ceil(len(manifest) / 10)):
-            print('New prediction num ' + str(index))
-            loops_output, sheet_output, helix_output, ss_output, backbone_output, ca_output = sess.run([loops_op, sheet_op, helix_op, ss_op, backbone_op, ca_op],
-                                                                                                       feed_dict={x: manifest[index * 10: (index + 1) * 10], y: manifest[index * 10: (index + 1) * 10]})
+            loops_output, sheet_output, helix_output, ss_output, backbone_output, ca_output = \
+                sess.run([loops_op, sheet_op, helix_op, ss_op, backbone_op, ca_op],
+                         feed_dict={
+                             x: manifest[index * 10: (index + 1) * 10],
+                             y: manifest[index * 10: (index + 1) * 10]
+                         })
             loops_image[index * 10: (index + 1) * 10] = loops_output
             sheet_image[index * 10: (index + 1) * 10] = sheet_output
             helix_image[index * 10: (index + 1) * 10] = helix_output
             loops_confidence[index * 10: (index + 1) * 10] = ss_output[:, :, :, :, 0]
             sheet_confidence[index * 10: (index + 1) * 10] = ss_output[:, :, :, :, 1]
             helix_confidence[index * 10: (index + 1) * 10] = ss_output[:, :, :, :, 2]
-            backbone_image[index * 10: (index + 1) * 10] = np.subtract(backbone_output[:, :, :, :, 1], backbone_output[:, :, :, :, 0])
+            backbone_image[index * 10: (index + 1) * 10] = np.subtract(backbone_output[:, :, :, :, 1],
+                                                                       backbone_output[:, :, :, :, 0])
             ca_image[index * 10: (index + 1) * 10] = np.subtract(ca_output[:, :, :, :, 1], ca_output[:, :, :, :, 0])
 
         # Add an arbitrary constant for improved viewing in Chimera.
@@ -81,9 +83,6 @@ def execute(paths):
         ca_image += 10
 
         # Reconstruct each 64^3 image into the full protein shape.
-        loops_image = ms.reconstruct_map(loops_image, np.shape(full_image))
-        sheet_image = ms.reconstruct_map(sheet_image, np.shape(full_image))
-        helix_image = ms.reconstruct_map(helix_image, np.shape(full_image))
         loops_confidence = ms.reconstruct_map(loops_confidence, np.shape(full_image))
         sheet_confidence = ms.reconstruct_map(sheet_confidence, np.shape(full_image))
         helix_confidence = ms.reconstruct_map(helix_confidence, np.shape(full_image))
@@ -92,9 +91,6 @@ def execute(paths):
 
         # Clean up predicted images by zeroing out space outside in input map.
         input_mask = np.where(full_image > 0, 1, 0)
-        loops_image = np.where(input_mask == 1, loops_image, 0)
-        sheet_image = np.where(input_mask == 1, sheet_image, 0)
-        helix_image = np.where(input_mask == 1, helix_image, 0)
         loops_confidence = np.where(input_mask == 1, loops_confidence, 0)
         sheet_confidence = np.where(input_mask == 1, sheet_confidence, 0)
         helix_confidence = np.where(input_mask == 1, helix_confidence, 0)
@@ -117,39 +113,39 @@ def execute(paths):
         # Print the loops image
         with mrcfile.new(paths['loops_confidence'], overwrite=True) as mrc:
             mrc.set_data(np.array(loops_image, dtype=np.float32))
-            mrc.header.origin = map.header.origin.item(0)
+            mrc.header.origin = normalized_map.header.origin.item(0)
             mrc.update_header_stats()
             mrc.close()
 
         # Print the sheet image
         with mrcfile.new(paths['sheet_confidence'], overwrite=True) as mrc:
             mrc.set_data(np.array(sheet_image, dtype=np.float32))
-            mrc.header.origin = map.header.origin.item(0)
+            mrc.header.origin = normalized_map.header.origin.item(0)
             mrc.update_header_stats()
             mrc.close()
 
         # Print the helix image
         with mrcfile.new(paths['helix_confidence'], overwrite=True) as mrc:
             mrc.set_data(np.array(helix_image, dtype=np.float32))
-            mrc.header.origin = map.header.origin.item(0)
+            mrc.header.origin = normalized_map.header.origin.item(0)
             mrc.update_header_stats()
             mrc.close()
 
         # Print the backbone confidence image
         with mrcfile.new(paths['backbone_confidence'], overwrite=True) as mrc:
             mrc.set_data(backbone_image)
-            mrc.header.origin = map.header.origin.item(0)
+            mrc.header.origin = normalized_map.header.origin.item(0)
             mrc.update_header_stats()
             mrc.close()
 
         # Print the ca-confidence image
         with mrcfile.new(paths['ca_confidence'], overwrite=True) as mrc:
             mrc.set_data(ca_image)
-            mrc.header.origin = map.header.origin.item(0)
+            mrc.header.origin = normalized_map.header.origin.item(0)
             mrc.update_header_stats()
             mrc.close()
 
-        map.close()
+        normalized_map.close()
 
 
 # Post-Processing step used to remove classification outliers in the secondary structure
@@ -164,8 +160,8 @@ def ss_nearest_neighbor(ss_confidence, input_mask):
             for z in range(1, box_size[2] - 1):
                 if input_mask[x][y][z] > 0:
                     loops_weight = 0
-                    sheet_weight = 0;
-                    helix_weight = 0;
+                    sheet_weight = 0
+                    helix_weight = 0
                     for z_n in range(-sphere_radius + z, sphere_radius + z):
                         for y_n in range(-sphere_radius + y, sphere_radius + y):
                             for x_n in range(-sphere_radius + x, sphere_radius + x):
@@ -211,7 +207,7 @@ def remove_small_chunks(input_image):
                             z_new = cur_position[2] + offsets[index][2]
                             if 0 <= x_new < box_size[0] and 0 <= y_new < box_size[1] and 0 <= z_new < box_size[2]:
                                 if input_image[x_new, y_new, z_new] > 0 and visited[x_new, y_new, z_new] == 0:
-                                    queue.append([x_new, y_new, z_new]);
+                                    queue.append([x_new, y_new, z_new])
                                     visited[x_new, y_new, z_new] = 1
                                     chunk_list.append([x_new, y_new, z_new])
                     if len(chunk_list) < min_chuck_size:
