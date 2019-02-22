@@ -25,7 +25,7 @@ PREDICTION_PIPELINE = [
 ]
 
 
-def run_predictions(input_path, output_path, thresholds_file, num_skip):
+def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing):
     """Creates thread pool which will concurrently run the prediction for every
     protein map in the 'input_path'
 
@@ -44,9 +44,13 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip):
 
     num_skip: int
         The number of prediction steps that should be skipped
+
+    check_existing: bool
+        If set prediction steps are only executed if their results are not
+        existing in the output path yet
     """
     # Create list of arguments for every prediction
-    args_list = [(input_path, output_path, thresholds_file, num_skip, emdb_id)
+    args_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing)
                  for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
@@ -58,6 +62,7 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip):
         evaluator.evaluate(emdb_id, predicted_file, gt_file, execution_time)
 
     evaluator.create_report(output_path, time() - start_time)
+
 
 def run_prediction(args):
     """Coordinates the execution of every prediction step in the prediction
@@ -76,7 +81,7 @@ def run_prediction(args):
         file, and execution time respectively
     """
     # Unpack parameters
-    input_path, output_path, thresholds_file, num_skip, emdb_id = args
+    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing = args
 
     mrc_file = get_file(input_path + emdb_id, ['mrc', 'map'])
     gt_file = get_file(input_path + emdb_id, ['pdb', 'ent'])
@@ -94,14 +99,23 @@ def run_prediction(args):
         os.makedirs(paths['output'], exist_ok=True)
 
         prediction_step.update_paths(paths)
-        if num_skip <= 0:
-            prediction_step.execute(paths)
-        else:
+        if num_skip > 0:
             num_skip -= 1
+        elif not check_existing or not files_exist(paths):
+            prediction_step.execute(paths)
 
     copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
 
     return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
+
+
+def files_exist(paths):
+    """Checks if all files specified in the 'paths' dict exist"""
+    for path in paths.values():
+        if not os.path.isdir(path) and not os.path.isfile(path):
+            return False
+
+    return True
 
 
 def get_file(path, allowed_extensions):
@@ -114,7 +128,8 @@ if __name__ == '__main__':
         run_predictions(sys.argv[1] + ('/' if sys.argv[1][-1] != '/' else ''),
                         sys.argv[2] + ('/' if sys.argv[1][-1] != '/' else ''),
                         sys.argv[3],
-                        0 if '-s' not in sys.argv else int(sys.argv[sys.argv.index('-s') + 1]))
+                        0 if '-s' not in sys.argv else int(sys.argv[sys.argv.index('-s') + 1]),
+                        '-c' in sys.argv)
     except IndexError:
         print('Missing argument')
     except ValueError:

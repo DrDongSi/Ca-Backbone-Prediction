@@ -14,8 +14,10 @@ The backbone prediction can be run by invoking the `prediction.py` script locate
 * Output path
 * Threshold file
 
-Additionally, we can pass an optional flag `-s` followed by a number `n` if we want to skip the first `n` prediction steps.
+An optional flag `-s` followed by a number `n` can be passed as an argument to skip the first `n` prediction steps.
 > Skipping prediction steps is only possible if the results of the skipped steps are already available in the output path
+
+Another optional flag `-c` can be set if you don't want to re-predict protein maps for which all/part of the results are already available in the output path. If set only prediction steps for which the results are not there yet are executed.
 
 An example command to execute the prediction could therefore be the following.
 
