@@ -57,6 +57,9 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
     pool = Pool(min(cpu_count(), len(args_list)))
     results = pool.map(run_prediction, args_list)
 
+    # Filter 'None' results
+    results = filter(lambda r: r is not None, results)
+
     evaluator = Evaluator(input_path)
     for emdb_id, predicted_file, gt_file, execution_time in results:
         evaluator.evaluate(emdb_id, predicted_file, gt_file, execution_time)
@@ -102,7 +105,11 @@ def run_prediction(args):
         if num_skip > 0:
             num_skip -= 1
         elif not check_existing or not files_exist(paths):
-            prediction_step.execute(paths)
+            try:
+                prediction_step.execute(paths)
+            except BaseException as e:
+                print(e)
+                return None
 
     copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
 
