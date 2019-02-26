@@ -3,11 +3,11 @@
 All prediction steps have to be added to the prediction pipeline.
 """
 
-import sys
 import os
 from shutil import copyfile
 from multiprocessing import cpu_count, Pool
 from time import time
+import argparse
 from evaluation import Evaluator
 import preprocessing as pre
 import cnn
@@ -49,13 +49,13 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
         If set prediction steps are only executed if their results are not
         existing in the output path yet
     """
-    # Create list of arguments for every prediction
-    args_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing)
+    # Create list of parameters for every prediction
+    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing)
                  for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
-    pool = Pool(min(cpu_count(), len(args_list)))
-    results = pool.map(run_prediction, args_list)
+    pool = Pool(min(cpu_count(), len(params_list)))
+    results = pool.map(run_prediction, params_list)
 
     # Filter 'None' results
     results = filter(lambda r: r is not None, results)
@@ -67,14 +67,14 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
     evaluator.create_report(output_path, time() - start_time)
 
 
-def run_prediction(args):
+def run_prediction(params):
     """Coordinates the execution of every prediction step in the prediction
     pipeline
 
     Parameters
     ----------
-    args: tuple
-        Tuple of arguments required for the prediction. They are unpacked at
+    params: tuple
+        Tuple of parameters required for the prediction. They are unpacked at
         the beginning of the method
 
     Returns
@@ -84,7 +84,7 @@ def run_prediction(args):
         file, and execution time respectively
     """
     # Unpack parameters
-    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing = args
+    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing = params
 
     mrc_file = get_file(input_path + emdb_id, ['mrc', 'map'])
     gt_file = get_file(input_path + emdb_id, ['pdb', 'ent'])
@@ -131,13 +131,18 @@ def get_file(path, allowed_extensions):
 
 
 if __name__ == '__main__':
-    try:
-        run_predictions(sys.argv[1] + ('/' if sys.argv[1][-1] != '/' else ''),
-                        sys.argv[2] + ('/' if sys.argv[1][-1] != '/' else ''),
-                        sys.argv[3],
-                        0 if '-s' not in sys.argv else int(sys.argv[sys.argv.index('-s') + 1]),
-                        '-c' in sys.argv)
-    except IndexError:
-        print('Missing argument')
-    except ValueError:
-        print('Invalid argument')
+    parser = argparse.ArgumentParser(description='Cα Backbone Prediction from High Resolution CryoEM Data')
+    parser.add_argument('input', type=str, help='Folder containing protein maps')
+    parser.add_argument('output', type=str, help='Folder where prediction results will be stored')
+    parser.add_argument('thresholds', type=str, help='JSON file which contains the thresholds')
+    parser.add_argument('-s', '--skip', metavar='N', type=int, nargs=1, default=0,
+                        help='Number of prediction steps that should be skipped')
+    parser.add_argument('-c', '--check_existing', action='store_const', const=True, default=False,
+                        help='Check if results already exists and if so skip prediction step')
+
+    args = parser.parse_args()
+
+    args.input += '/' if args.input[-1] != '/' else ''
+    args.output += '/' if args.output[-1] != '/' else ''
+
+    run_predictions(args.input, args.output, args.thresholds, args.skip, args.check_existing)
