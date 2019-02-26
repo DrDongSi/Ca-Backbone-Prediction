@@ -125,6 +125,8 @@ class Evaluator:
         if not self.evaluation_results:
             return
 
+        self.evaluation_results.sort(key=lambda r: r.name)
+
         book = xlwt.Workbook()
         sh = book.add_sheet('results')
 
