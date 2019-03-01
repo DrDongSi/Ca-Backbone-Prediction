@@ -22,8 +22,6 @@ def execute(paths):
     with open(paths['threshold'], 'w') as f:
         f.write(str(threshold))
 
-    raise Exception('We done')
-
 
 def sav(threshold, paths):
     """Calculates surface area to volume ratio for cleaned map with given
