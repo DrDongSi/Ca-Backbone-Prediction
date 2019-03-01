@@ -18,6 +18,7 @@ import postprocessing as post
 # the final prediction
 PREDICTION_PIPELINE = [
     pre.clean_map,
+    pre.find_threshold,
     pre.normalize_map,
     cnn.predict_with_module,
     post.build_backbone_trace,
@@ -93,8 +94,10 @@ def run_prediction(params):
     paths = {
         'input': input_path + emdb_id + '/' + mrc_file,
         'ground_truth': input_path + emdb_id + '/' + gt_file,
-        'thresholds_file': thresholds_file
     }
+
+    if thresholds_file is not None:
+        paths['thresholds_file'] = thresholds_file
 
     start_time = time()
     for prediction_step in PREDICTION_PIPELINE:
@@ -108,7 +111,7 @@ def run_prediction(params):
             try:
                 prediction_step.execute(paths)
             except BaseException as e:
-                print(e)
+                print('Exception: ' + str(e))
                 return None
 
     copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
@@ -134,7 +137,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cα Backbone Prediction from High Resolution CryoEM Data')
     parser.add_argument('input', type=str, help='Folder containing protein maps')
     parser.add_argument('output', type=str, help='Folder where prediction results will be stored')
-    parser.add_argument('thresholds', type=str, help='JSON file which contains the thresholds')
+    parser.add_argument('-t', '--thresholds', metavar='Thresholds', type=str,
+                        help='JSON file which contains the thresholds')
     parser.add_argument('-s', '--skip', metavar='N', type=int, nargs=1, default=0,
                         help='Number of prediction steps that should be skipped')
     parser.add_argument('-c', '--check_existing', action='store_const', const=True, default=False,

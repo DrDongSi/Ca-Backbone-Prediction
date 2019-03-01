@@ -40,12 +40,17 @@ def execute(paths):
 
 
 def get_threshold(paths):
-    emdb_id = paths['input'].split('/')[-2]
-    with open(paths['thresholds_file']) as json_file:
-        thresholds = json.load(json_file)
+    if 'thresholds_file' in paths:
+        emdb_id = paths['input'].split('/')[-2]
 
-        return thresholds[emdb_id]
+        with open(paths['thresholds_file']) as f:
+            thresholds = json.load(f)
 
+        if emdb_id in thresholds:
+            return thresholds[emdb_id]
+
+    with open(paths['threshold']) as f:
+        return float(f.readline())
 
 def distance(z1, z2, y1, y2, x1, x2):
     """Calculates Euclidean distance between two points"""
