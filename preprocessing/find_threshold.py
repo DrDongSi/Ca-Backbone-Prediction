@@ -52,7 +52,7 @@ def sav(threshold, paths):
 
     os.remove(chimera_script.name)
 
-    return 0 if volume == 0 else surface_area / volume
+    return float('inf') if volume == 0 else surface_area / volume
 
 
 def parse_chimera_output(output):

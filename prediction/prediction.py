@@ -52,7 +52,7 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
     """
     # Create list of parameters for every prediction
     params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing)
-                 for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
+                   for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
     pool = Pool(min(cpu_count(), len(params_list)))
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('output', type=str, help='Folder where prediction results will be stored')
     parser.add_argument('-t', '--thresholds', metavar='Thresholds', type=str,
                         help='JSON file which contains the thresholds')
-    parser.add_argument('-s', '--skip', metavar='N', type=int, nargs=1, default=0,
+    parser.add_argument('-s', '--skip', metavar='N', type=int, nargs=1, default=[0],
                         help='Number of prediction steps that should be skipped')
     parser.add_argument('-c', '--check_existing', action='store_const', const=True, default=False,
                         help='Check if results already exists and if so skip prediction step')
@@ -149,4 +149,4 @@ if __name__ == '__main__':
     args.input += '/' if args.input[-1] != '/' else ''
     args.output += '/' if args.output[-1] != '/' else ''
 
-    run_predictions(args.input, args.output, args.thresholds, args.skip, args.check_existing)
+    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing)
