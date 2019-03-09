@@ -29,7 +29,7 @@ An example command to execute the prediction could therefore be the following.
 ### Sample Execution
 A sample execution of the prediction will be demonstrated for the [5778 protein density map](https://www.emdataresource.org/EMD-5778) shown in the following image.
 
-![](/Users/jonaspfab/Desktop/density_map.png )
+<img src="https://i.ibb.co/XtbqC9z/density-map.png" alt="density-map" border="0">
 
 The program will require the map as well as the fitted PDB as an input. Both files need to be stored in the same folder which is ideally named after the EMDB id. We also need to create a folder where the results will be stored. The folder structure could then look as following.
 
@@ -61,7 +61,7 @@ After the execution finished the folder structure should look as following.
 
 The final prediction is stored in the **5778.pdb** file. The created backbone trace is shown in the following image.
 
-![](/Users/jonaspfab/Desktop/prediction.png )
+<img src="https://i.ibb.co/hsq9VW5/prediction.png" alt="prediction" border="0">
 
 Additionally, a **results.xls** file is created in the output folder containing metrics about the prediction results. In the case of the 5778 protein map this could e.g. look like this.
 
