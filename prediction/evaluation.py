@@ -115,7 +115,7 @@ class Evaluator:
                                                         native_ca_atoms,
                                                         total_ca,
                                                         total_ca / native_ca_atoms,
-                                                        math.sqrt(squared_sum / total_ca),
+                                                        math.sqrt(squared_sum / total_ca) if total_ca != 0 else 0,
                                                         incorrect,
                                                         execution_time))
 
