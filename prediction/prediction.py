@@ -4,10 +4,12 @@ All prediction steps have to be added to the prediction pipeline.
 """
 
 import os
+import sys
 from shutil import copyfile
 from multiprocessing import cpu_count, Pool
 from time import time
 import argparse
+import traceback
 from evaluation import Evaluator
 import preprocessing as pre
 import cnn
@@ -86,7 +88,34 @@ def run_prediction(params):
     """
     # Unpack parameters
     emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing = params
+    paths = make_paths(input_path, emdb_id, thresholds_file)
 
+    start_time = time()
+    for prediction_step in PREDICTION_PIPELINE:
+        paths['output'] = output_path + emdb_id + '/' + prediction_step.__name__.split('.')[0] + '/'
+        os.makedirs(paths['output'], exist_ok=True)
+
+        try:
+            prediction_step.update_paths(paths)
+            if num_skip > 0 or (check_existing and not files_exist(paths)):
+                num_skip -= 1
+            else:
+                prediction_step.execute(paths)
+        except BaseException:
+            exc_info = sys.exc_info()
+            traceback.print_exception(*exc_info)
+
+            return None
+
+    if 'traces_refined' in paths:
+        copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
+
+    return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
+
+
+def make_paths(input_path, emdb_id, thresholds_file):
+    """Creates base paths dictionary with density map, ground truth, and
+    optionally the thresholds file"""
     mrc_file = get_file(input_path + emdb_id, ['mrc', 'map'])
     gt_file = get_file(input_path + emdb_id, ['pdb', 'ent'])
     # Directory that contains paths to all relevant files. This will be
@@ -99,24 +128,7 @@ def run_prediction(params):
     if thresholds_file is not None:
         paths['thresholds_file'] = thresholds_file
 
-    start_time = time()
-    for prediction_step in PREDICTION_PIPELINE:
-        paths['output'] = output_path + emdb_id + '/' + prediction_step.__name__.split('.')[0] + '/'
-        os.makedirs(paths['output'], exist_ok=True)
-
-        prediction_step.update_paths(paths)
-        if num_skip > 0:
-            num_skip -= 1
-        elif not check_existing or not files_exist(paths):
-            try:
-                prediction_step.execute(paths)
-            except BaseException as e:
-                print('Exception: ' + str(e))
-                return None
-
-    copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
-
-    return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
+    return paths
 
 
 def files_exist(paths):
