@@ -50,8 +50,6 @@ def execute(paths):
     with open(paths['threshold'], 'w') as f:
         f.write(str(threshold))
 
-    raise Exception('Done')
-
 
 def count_values(map_data, threshold):
     """Count number of values in 'map_data' larger than given 'threshold'
