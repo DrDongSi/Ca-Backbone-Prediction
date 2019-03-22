@@ -7,16 +7,21 @@ Deep Learning for Cα Backbone Prediction from High Resolution CryoEM Data
 <img src="https://i.ibb.co/pQbMPrW/sample-prediction.png" alt="sample-prediction" border="0">
 
 ## Installing Required Packages
-In order to run the backbone prediction we need to install all required Python packages.
-This can be done by creating a virtual environment with `python -m venv env` and activating it with `source ./env/bin/activate`. Once the virtual Python environment is activated, the required packages can be installed with pip using `pip install -r requirements.txt`.
+In order to run the backbone prediction we need to install all required Python packages (Python version of 3.5 or higher is required). This can be done by creating a virtual environment with `python3 -m venv env` and activating it with `source ./env/bin/activate`. Once the virtual Python environment is activated, the required packages can be installed with pip using `pip install -r requirements.txt`.
 
 Additionally, we need to have Chimera installed on the system and a symbolic link to the chimera binary file in `/usr/local/bin/chimera` must exist.
 
 ## Usage
+Before we can run the prediction we have to set the source root of the project using the following command.
+
+`export PYTHONPATH="${PYTHONPATH}:/PATH_TO_REPOSITORY/Ca-Backbone-Prediction/`
+
 The backbone prediction can be run by invoking the `prediction.py` script located in the `prediction` package. It requires two positional arguments:
 
 * Input path
 * Output path
+
+> Paths must be passed as absolute paths
 
 In addition to the input and output path we can also provide a JSON file containing threshold values for each protein using `-t THRESHOLD_FILE `. If this file is not provided threshold values are determined automatically which can lead to worse prediction results.
 
@@ -42,7 +47,7 @@ Furthermore, we want to provide a file containing the threshold value that shoul
 
 ```
 {
-	'5778': 4.50
+	"5778": 4.50
 }
 ```
 
