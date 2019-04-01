@@ -146,7 +146,7 @@ def get_file(path, allowed_extensions):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Cα Backbone Prediction from High Resolution CryoEM Data')
+    parser = argparse.ArgumentParser(description='Ca Backbone Prediction from High Resolution CryoEM Data')
     parser.add_argument('input', type=str, help='Folder containing protein maps')
     parser.add_argument('output', type=str, help='Folder where prediction results will be stored')
     parser.add_argument('-t', '--thresholds', metavar='Thresholds', type=str,
