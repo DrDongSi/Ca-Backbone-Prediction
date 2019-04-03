@@ -97,7 +97,7 @@ def run_prediction(params):
 
         try:
             prediction_step.update_paths(paths)
-            if num_skip > 0 or (check_existing and not files_exist(paths)):
+            if num_skip > 0 or (check_existing and files_exist(paths)):
                 num_skip -= 1
             else:
                 prediction_step.execute(paths)
