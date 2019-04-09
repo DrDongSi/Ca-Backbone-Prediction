@@ -511,7 +511,8 @@ class Graph:
         for node in self.nodes:
             if node.get_location() == location:
                 return node
-        return -1
+
+        raise ValueError('No node found with given location')
 
     def edge_check(self):
         for node in self.nodes:
@@ -688,18 +689,22 @@ class Graph:
                     trace = list()
                     trace.append(node.get_location())
                     previous = node
-                    cur = self.get_node(edge)
-                    while True:
-                        trace.append(cur.get_location())
-                        if cur.get_num_edges() != 2:
-                            break
-                        else:
-                            temp_node = cur
-                            if cur.get_edges()[0] == previous.get_location():
-                                cur = self.get_node(cur.get_edges()[1])
+                    try:
+                        cur = self.get_node(edge)
+                        while True:
+                            trace.append(cur.get_location())
+                            if cur.get_num_edges() != 2:
+                                break
                             else:
-                                cur = self.get_node(cur.get_edges()[0])
-                            previous = temp_node
+                                temp_node = cur
+                                if cur.get_edges()[0] == previous.get_location():
+                                    cur = self.get_node(cur.get_edges()[1])
+                                else:
+                                    cur = self.get_node(cur.get_edges()[0])
+                                previous = temp_node
+                    except ValueError as e:
+                        print(e)
+
                     representation = repr(trace[0]) + repr(trace[len(trace) - 1])
                     if representation not in already_written:
                         set_of_traces.append(trace)
