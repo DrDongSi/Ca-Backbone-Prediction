@@ -12,11 +12,8 @@ In order to run the backbone prediction we need to install all required Python p
 Additionally, we need to have Chimera installed on the system and a symbolic link to the chimera binary file in `/usr/local/bin/chimera` must exist.
 
 ## Usage
-Before we can run the prediction we have to set the source root of the project using the following command.
 
-`export PYTHONPATH="${PYTHONPATH}:/PATH_TO_REPOSITORY/Ca-Backbone-Prediction/`
-
-The backbone prediction can be run by invoking the `prediction.py` script located in the `prediction` package. It requires two positional arguments:
+The backbone prediction can be run by invoking the `main.py` script located in the root of the project. It requires two positional arguments:
 
 * Input path
 * Output path
@@ -32,7 +29,7 @@ Another optional flag `-c` can be set if you don't want to re-predict protein ma
 
 An example command to execute the prediction could therefore be the following.
 
-`python prediction/prediction.py INPUT_PATH OUTPUT_PATH -t THRESHOLD_FILE`
+`python main.py INPUT_PATH OUTPUT_PATH -t THRESHOLD_FILE`
 
 ### Sample Execution
 A sample execution of the prediction will be demonstrated for the [5778 protein density map](https://www.emdataresource.org/EMD-5778) shown in the following image.
@@ -55,7 +52,7 @@ Furthermore, we want to provide a file containing the threshold value that shoul
 
 Now, we can start the prediction using the following command.
 
-`python prediction/prediction.py input output -t thresholds.json`
+`python main.py input output -t thresholds.json`
 
 During the execution all prediction steps are run and the artifacts created by each step are stored in the output folder. In the following diagram we can see the flow of the different steps and the files they create.
 
