@@ -29,10 +29,10 @@ def execute(paths):
     chimera_script.write('open ' + paths['input'] + '\n'
                          'open ' + paths['ground_truth'] + '\n'
                          'molmap #1 6 gridSpacing 1\n'
-                         'volume #2 level 0.1\n'
-                         'mask #0 #2\n'
-                         'vop resample #3 onGrid #2\n'
-                         'volume #4 save ' + paths['cleaned_map'])
+                         'volume #1.1 level 0.1\n'
+                         'mask #0 #1.1\n'
+                         'vop resample #2 onGrid #1.1\n'
+                         'volume #3 save ' + paths['cleaned_map'])
     chimera_script.close()
 
     script_finished = False
