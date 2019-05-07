@@ -93,7 +93,6 @@ def upload_density_map(job_id, protein_id):
 
     try:
         density_map = request.files['density_map']
-        print(type(density_map))
         db.store_density_map(job_id, protein_id, density_map)
     except (JobNotFoundError, ProteinNotFoundError) as e:
         abort(404, str(e))
