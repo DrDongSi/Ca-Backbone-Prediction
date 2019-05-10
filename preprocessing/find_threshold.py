@@ -7,7 +7,7 @@ by the mrc2pdb script with which the CNN was trained.
 
 Threshold values are calculated using two different methods. First, we want to
 find a threshold value such that the density map has a surface area to volume
-ratio of 0.8. Secondly, we want to find a threshold value such that the ratio of
+ratio of 0.9. Secondly, we want to find a threshold value such that the ratio of
 number of values larger than the threshold to number of non-zero values is
 0.484. The median of both numbers is then used as the threshold value and stored
 in a file at /preprocessing/threshold.
@@ -37,12 +37,12 @@ def execute(paths):
     map_data = deepcopy(mrcfile.open(paths['cleaned_map'], mode='r').data).ravel()
     num_non_zero_values = count_values(map_data, 0)
 
-    # Find threshold value such that the surface area to volume ratio is 0.7
-    threshold1 = root_scalar(lambda t: 0.8 - sav(t, paths),
+    # Find threshold value such that the surface area to volume ratio is 0.9
+    threshold1 = root_scalar(lambda t: 0.9163020188305991 - sav(t, paths),
                              bracket=[0, 10]).root
     # Finding threshold value such that the ratio of number of values larger
     # than the threshold to number of non-zero values is 0.4
-    threshold2 = root_scalar(lambda t: 0.484 - (count_values(map_data, t) / num_non_zero_values),
+    threshold2 = root_scalar(lambda t: 0.4640027954434909 - (count_values(map_data, t) / num_non_zero_values),
                              bracket=[0, 10]).root
 
     threshold = (threshold1 + threshold2) / 2
