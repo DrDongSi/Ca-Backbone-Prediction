@@ -10,10 +10,13 @@ method
 
 import subprocess
 import os
+from shutil import copyfile
 
 
 def update_paths(paths):
     paths['cleaned_map'] = paths['output'] + 'cleaned_map.mrc'
+    paths['blank_ent'] = paths['output'] + 'blank.ent'
+    paths['blank_centered_ent'] = paths['output'] + 'blank_centered.ent'
 
 
 def execute(paths):
@@ -25,14 +28,26 @@ def execute(paths):
         Contains relevant paths for input and output files for the current
         prediction
     """
+
+    copyfile(os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/blank.ent', paths['blank_ent'])
+
     chimera_script = open(paths['output'] + 'resample.cmd', 'w')
+
     chimera_script.write('open ' + paths['input'] + '\n'
-                         'open ' + paths['ground_truth'] + '\n'
-                         'molmap #1 6 gridSpacing 1\n'
-                         'volume #1.1 level 0.1\n'
-                         'mask #0 #1.1\n'
-                         'vop resample #2 onGrid #1.1\n'
+                         'cofr models\n'
+                         'cofr fixed\n'
+                         'open ' + paths['blank_ent'] + '\n'                         
+                         'move cofr mod #1\n'
+                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
+                         'open ' + paths['blank_centered_ent'] + '\n'
+                         'molmap #2 6 gridSpacing 1\n'                        
+                         'volume #0 level 0.1\n'
+                         'sop hideDust #0 size 1.0\n'
+                         'sel #0\n'
+                         'open ' + os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/surfinvert.py\n'
+                         'vop resample sel onGrid #2.1\n'
                          'volume #3 save ' + paths['cleaned_map'])
+                     
     chimera_script.close()
 
     script_finished = False

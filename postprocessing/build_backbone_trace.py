@@ -317,11 +317,12 @@ def distance_between_bfs(position, input_image):
             x = cur_position[0] + offsets[index][0]
             y = cur_position[1] + offsets[index][1]
             z = cur_position[2] + offsets[index][2]
-            if input_image[x][y][z] > 0 and visited[x][y][z] == 0:
-                position_queue.append([x, y, z])
-                distance_queue.append(cur_distance + 1)
-                distance_image[x][y][z] = cur_distance + 1
-                visited[x][y][z] = 1
+            if x < len(input_image) and y < len(input_image[0]) and z < len(input_image[0][0]):
+                if input_image[x][y][z] > 0 and visited[x][y][z] == 0:
+                    position_queue.append([x, y, z])
+                    distance_queue.append(cur_distance + 1)
+                    distance_image[x][y][z] = cur_distance + 1
+                    visited[x][y][z] = 1
     return distance_image
 
 
