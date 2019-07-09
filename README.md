@@ -54,6 +54,18 @@ Now, we can start the prediction using the following command.
 
 `python main.py input output -t thresholds.json`
 
+Also, an option to apply hide dust sizes can be provided in a `hidedusts.json` file. Format is [contour level, hideDust size].
+
+```
+{
+  "5778": [1.0, 10.0]
+}
+``` 
+
+Additionally, we can start the prediction using the following command.
+
+`python main.py input output -d hidedusts.json`
+
 During the execution all prediction steps are run and the artifacts created by each step are stored in the output folder. In the following diagram we can see the flow of the different steps and the files they create.
 
 <img src="https://i.ibb.co/w0DWq2M/prediction-pipeline.png" alt="prediction-pipeline" border="0">

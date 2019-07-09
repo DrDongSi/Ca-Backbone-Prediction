@@ -11,6 +11,7 @@ method
 import subprocess
 import os
 from shutil import copyfile
+import json
 
 
 def update_paths(paths):
@@ -33,7 +34,15 @@ def execute(paths):
 
     chimera_script = open(paths['output'] + 'resample.cmd', 'w')
 
-    chimera_script.write('open ' + paths['input'] + '\n'
+    if 'hidedusts_file' in paths:
+        emdb_id = paths['input'].split('/')[-2]
+        with open(paths['hidedusts_file']) as f:
+            hidedusts = json.load(f)
+
+    if 'hidedusts_file' in paths and emdb_id in hidedusts:
+        level, hidedust_size = hidedusts[emdb_id]
+
+        chimera_script.write('open ' + paths['input'] + '\n'
                          'cofr models\n'
                          'cofr fixed\n'
                          'open ' + paths['blank_ent'] + '\n'                         
@@ -41,10 +50,22 @@ def execute(paths):
                          'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
                          'open ' + paths['blank_centered_ent'] + '\n'
                          'molmap #2 6 gridSpacing 1\n'                        
-                         'volume #0 level 0.1\n'
-                         'sop hideDust #0 size 1.0\n'
+                         'volume #0 level ' + str(level) + '\n'
+                         'sop hideDust #0 size ' + str(hidedust_size) + '\n'
                          'sel #0\n'
-                         'open ' + os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/surfinvert.py\n'
+                         'mask sel #0\n'
+                         'vop resample #3 onGrid #2.1\n'
+                         'volume #4 save ' + paths['cleaned_map'])
+    else:
+        chimera_script.write('open ' + paths['input'] + '\n'
+                         'cofr models\n'
+                         'cofr fixed\n'
+                         'open ' + paths['blank_ent'] + '\n'                         
+                         'move cofr mod #1\n'
+                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
+                         'open ' + paths['blank_centered_ent'] + '\n'
+                         'molmap #2 6 gridSpacing 1\n'                        
+                         'sel #0\n'
                          'vop resample sel onGrid #2.1\n'
                          'volume #3 save ' + paths['cleaned_map'])
                      

@@ -27,7 +27,7 @@ PREDICTION_PIPELINE = [
 ]
 
 
-def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing):
+def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file):
     """Creates thread pool which will concurrently run the prediction for every
     protein map in the 'input_path'
 
@@ -52,7 +52,7 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
         existing in the output path yet
     """
     # Create list of parameters for every prediction
-    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing)
+    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file)
                    for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
@@ -86,8 +86,8 @@ def run_prediction(params):
         file, and execution time respectively
     """
     # Unpack parameters
-    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing = params
-    paths = make_paths(input_path, emdb_id, thresholds_file)
+    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file = params
+    paths = make_paths(input_path, emdb_id, thresholds_file, hidedusts_file)
 
     start_time = time()
     for prediction_step in PREDICTION_PIPELINE:
@@ -112,7 +112,7 @@ def run_prediction(params):
     return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
 
 
-def make_paths(input_path, emdb_id, thresholds_file):
+def make_paths(input_path, emdb_id, thresholds_file, hidedusts_file):
     """Creates base paths dictionary with density map, ground truth, and
     optionally the thresholds file"""
     mrc_file = get_file(input_path + emdb_id, ['mrc', 'map'])
@@ -126,6 +126,9 @@ def make_paths(input_path, emdb_id, thresholds_file):
 
     if thresholds_file is not None:
         paths['thresholds_file'] = thresholds_file
+
+    if hidedusts_file is not None:
+        paths['hidedusts_file'] = hidedusts_file
 
     return paths
 

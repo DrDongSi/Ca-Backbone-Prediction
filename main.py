@@ -11,10 +11,12 @@ if __name__ == '__main__':
                         help='Number of prediction steps that should be skipped')
     parser.add_argument('-c', '--check_existing', action='store_const', const=True, default=False,
                         help='Check if results already exists and if so skip prediction step')
+    parser.add_argument('-d', '--hidedusts', metavar='HideDusts', type=str,
+                        help='JSON file which contains the hide dust sizes')
 
     args = parser.parse_args()
 
     args.input += '/' if args.input[-1] != '/' else ''
     args.output += '/' if args.output[-1] != '/' else ''
 
-    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing)
+    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing, args.hidedusts)
