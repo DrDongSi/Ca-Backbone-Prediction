@@ -2,6 +2,7 @@ import math
 import xlwt
 from datetime import timedelta
 
+
 class Evaluator:
 
     def __init__(self, input_path):
@@ -51,6 +52,21 @@ class Evaluator:
                         min_dist = dist
                 if min_dist > 3:
                     incorrect += 1
+
+        # Calculate false-positive rate
+        num_fp = 0
+        for partial_set in pred_ca_atoms:
+            for pred_ca in partial_set:
+                is_fp = True
+                for gt_ca in gt_ca_atoms:
+                    if distance(pred_ca[2], gt_ca[2], pred_ca[1], gt_ca[1], pred_ca[0], gt_ca[0]) <= 3:
+                        is_fp = False
+                        break
+
+                if is_fp:
+                    num_fp += 1
+
+        fp_per = num_fp / len(pred_ca_atoms)
 
         total_ca = 0
         squared_sum = 0
@@ -117,7 +133,8 @@ class Evaluator:
                                                         total_ca / native_ca_atoms,
                                                         math.sqrt(squared_sum / total_ca) if total_ca != 0 else 0,
                                                         incorrect,
-                                                        execution_time))
+                                                        execution_time,
+                                                        fp_per))
 
     def create_report(self, output_path, execution_time):
         """Creates excel document containing evaluation reports"""
@@ -137,7 +154,8 @@ class Evaluator:
         sh.write(0, 4, 'Matching Percentage')
         sh.write(0, 5, 'RMSD')
         sh.write(0, 6, 'Incorrect')
-        sh.write(0, 7, 'Execution Time')
+        sh.write(0, 7, 'FP')
+        sh.write(0, 8, 'Execution Time')
 
         for i in range(len(self.evaluation_results)):
             sh.write(1 + i, 0, self.evaluation_results[i].name)
@@ -147,17 +165,20 @@ class Evaluator:
             sh.write(1 + i, 4, self.evaluation_results[i].matching_ca_per)
             sh.write(1 + i, 5, self.evaluation_results[i].rmsd)
             sh.write(1 + i, 6, self.evaluation_results[i].num_incorrect)
-            sh.write(1 + i, 7, str(timedelta(seconds=int(self.evaluation_results[i].execution_time))))
+            sh.write(1 + i, 7, self.evaluation_results[i].fp_per)
+            sh.write(1 + i, 8, str(timedelta(seconds=int(self.evaluation_results[i].execution_time))))
 
         rmsd_avg = sum(r.rmsd for r in self.evaluation_results) / len(self.evaluation_results)
         matching_ca_per_avg = sum(r.matching_ca_per for r in self.evaluation_results) / len(self.evaluation_results)
         execution_time_avg = sum(r.execution_time for r in self.evaluation_results) / len(self.evaluation_results)
+        fp_avg = sum(r.fp_per for r in self.evaluation_results) / len(self.evaluation_results)
         sh.write(len(self.evaluation_results) + 1, 0, 'Avg.')
         sh.write(len(self.evaluation_results) + 1, 4, matching_ca_per_avg)
         sh.write(len(self.evaluation_results) + 1, 5, rmsd_avg)
-        sh.write(len(self.evaluation_results) + 1, 7, str(timedelta(seconds=int(execution_time_avg))))
+        sh.write(len(self.evaluation_results) + 1, 7, fp_avg)
+        sh.write(len(self.evaluation_results) + 1, 8, str(timedelta(seconds=int(execution_time_avg))))
         sh.write(len(self.evaluation_results) + 2, 0, 'Total')
-        sh.write(len(self.evaluation_results) + 2, 7, str(timedelta(seconds=int(execution_time))))
+        sh.write(len(self.evaluation_results) + 2, 8, str(timedelta(seconds=int(execution_time))))
 
         book.save(output_path + 'results.xls')
 
@@ -165,7 +186,7 @@ class Evaluator:
 class EvaluationResult:
 
     def __init__(self, name, num_modeled_ca, num_native_ca, num_matching_ca, matching_ca_per, rmsd, num_incorrect,
-                 execution_time):
+                 execution_time, fp_per):
         self.name = name
         self.num_modeled_ca = num_modeled_ca
         self.num_native_ca = num_native_ca
@@ -174,6 +195,7 @@ class EvaluationResult:
         self.rmsd = rmsd
         self.num_incorrect = num_incorrect
         self.execution_time = execution_time
+        self.fp_per = fp_per
 
 
 def distance(z1, z2, y1, y2, x1, x2):
