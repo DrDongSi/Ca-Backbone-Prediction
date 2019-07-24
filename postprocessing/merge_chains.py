@@ -10,60 +10,43 @@ def execute(paths):
     chains = [c for c in read_pdb(paths['traces_refined']) if len(c.nodes) > 0]
     while merge_closest_chains(chains):
         pass
-    #merge_closest_chains(chains)
 
     write_pdb(chains, paths['fragments_merged'])
 
 
-class EndPoint:
-    def __init__(self, chains, chain1, chain2, closest_nodes1, closest_nodes2, distance):
-        self.chains = chains
+class PossibleConnection:
+
+    def __init__(self, chain1, chain2, i1, i2):
         self.chain1 = chain1
         self.chain2 = chain2
-        self.closest_nodes1 = closest_nodes1
-        self.closest_nodes2 = closest_nodes2
-        self.distance = distance
-    def __str__(self):
-        return str(self.distance)
+        self.i1 = i1
+        self.i2 = i2
+        self.distance = get_distance(chain1.nodes[i1], chain2.nodes[i2])
+
 
 def merge_closest_chains(chains):
-
-
-    matches = defaultdict(list)
+    possible_connections = []
     for chain1 in chains:
         for chain2 in [c for c in chains if c != chain1]:
             last_i1, last_i2 = len(chain1.nodes) - 1, len(chain2.nodes) - 1
-            closest_nodes = sorted([
-                (0, 0, get_distance(chain1.nodes[0].data, chain2.nodes[0].data)),
-                (0, last_i2, get_distance(chain1.nodes[0].data, chain2.nodes[last_i2].data)),
-                (last_i1, 0, get_distance(chain1.nodes[last_i1].data, chain2.nodes[0].data)),
-                (last_i1, last_i2, get_distance(chain1.nodes[last_i1].data, chain2.nodes[last_i2].data))
-            ], key=lambda d: d[2])[0]
+            possible_connections += [
+                PossibleConnection(chain1, chain2, 0, 0),
+                PossibleConnection(chain1, chain2, 0, last_i2),
+                PossibleConnection(chain1, chain2, last_i1, 0),
+                PossibleConnection(chain1, chain2, last_i1, last_i2)
+            ]
 
-            if closest_nodes[2] < 10:
-                print(closest_nodes)
-                distance = closest_nodes[2]
-                matches[chain1].append(EndPoint(chains, chain1, chain2, closest_nodes[0], closest_nodes[1], distance))
-                #merge_chains(chains, chain1, chain2, closest_nodes[0], closest_nodes[1])
-                #return True
+    possible_connections.sort(key=lambda p: p.distance)
+    if len(possible_connections) > 0 and possible_connections[0].distance < 10:
+        merge_chains(chains,
+                     possible_connections[0].chain1,
+                     possible_connections[0].chain2,
+                     possible_connections[0].i1,
+                     possible_connections[0].i2)
 
-        for key in matches.keys():
-            matches[key] = sorted(matches[key], key=lambda d: d.distance)
-            matches[key] = list(filter(lambda d: d.distance > 0, matches[key]))
-            print('--->: ')
-            for item in matches[key]:
-                print(item)
-
-        for key, item in matches.items():
-            if len(item) > 0:
-                for i in item:
-                    if not i.chain1.nodes[i.closest_nodes1].visited and not i.chain2.nodes[i.closest_nodes2].visited:
-                        i.chain1.nodes[i.closest_nodes1].visited = True
-                        i.chain2.nodes[i.closest_nodes2].visited = True
-                        merge_chains(i.chains, i.chain1, i.chain2, i.closest_nodes1, i.closest_nodes2)
-                        return True
-
-    return False
+        return True
+    else:
+        return False
 
 
 def merge_chains(chains, chain1, chain2, at1, at2):
@@ -94,7 +77,7 @@ def add_offset(sse, offset):
 
 
 def reverse_indices(sse, nodes):
-    return [[len(nodes) - i for i in i_s] for i_s in sse]
+    return sorted([[len(nodes) - i - 1 for i in i_s][::-1] for i_s in sse], key=lambda i_s: i_s[0])
 
 
 def get_distance(point1, point2):
@@ -145,7 +128,7 @@ def read_pdb(pdb_name):
             try:
                 if line[:4] == 'ATOM':
                     data = parse_node(line)
-                    chains[-1].nodes.append(Node(data))
+                    chains[-1].nodes.append(data)
                 elif line[:5] == 'HELIX':
                     data, i = parse_helix(line, chains)
                     chains[i].helices.append(data)
