@@ -1,4 +1,5 @@
 import numpy as np
+from collections import defaultdict
 
 
 def update_paths(paths):
@@ -9,25 +10,58 @@ def execute(paths):
     chains = [c for c in read_pdb(paths['traces_refined']) if len(c.nodes) > 0]
     while merge_closest_chains(chains):
         pass
+    #merge_closest_chains(chains)
 
     write_pdb(chains, paths['fragments_merged'])
 
 
+class EndPoint:
+    def __init__(self, chains, chain1, chain2, closest_nodes1, closest_nodes2, distance):
+        self.chains = chains
+        self.chain1 = chain1
+        self.chain2 = chain2
+        self.closest_nodes1 = closest_nodes1
+        self.closest_nodes2 = closest_nodes2
+        self.distance = distance
+    def __str__(self):
+        return str(self.distance)
+
 def merge_closest_chains(chains):
+
+
+    matches = defaultdict(list)
     for chain1 in chains:
         for chain2 in [c for c in chains if c != chain1]:
             last_i1, last_i2 = len(chain1.nodes) - 1, len(chain2.nodes) - 1
             closest_nodes = sorted([
-                (0, 0, get_distance(chain1.nodes[0], chain2.nodes[0])),
-                (0, last_i2, get_distance(chain1.nodes[0], chain2.nodes[last_i2])),
-                (last_i1, 0, get_distance(chain1.nodes[last_i1], chain2.nodes[0])),
-                (last_i1, last_i2, get_distance(chain1.nodes[last_i1], chain2.nodes[last_i2]))
+                (0, 0, get_distance(chain1.nodes[0].data, chain2.nodes[0].data)),
+                (0, last_i2, get_distance(chain1.nodes[0].data, chain2.nodes[last_i2].data)),
+                (last_i1, 0, get_distance(chain1.nodes[last_i1].data, chain2.nodes[0].data)),
+                (last_i1, last_i2, get_distance(chain1.nodes[last_i1].data, chain2.nodes[last_i2].data))
             ], key=lambda d: d[2])[0]
 
             if closest_nodes[2] < 10:
                 print(closest_nodes)
-                merge_chains(chains, chain1, chain2, closest_nodes[0], closest_nodes[1])
-                return True
+                distance = closest_nodes[2]
+                matches[chain1].append(EndPoint(chains, chain1, chain2, closest_nodes[0], closest_nodes[1], distance))
+                #merge_chains(chains, chain1, chain2, closest_nodes[0], closest_nodes[1])
+                #return True
+
+        for key in matches.keys():
+            matches[key] = sorted(matches[key], key=lambda d: d.distance)
+            matches[key] = list(filter(lambda d: d.distance > 0, matches[key]))
+            print('--->: ')
+            for item in matches[key]:
+                print(item)
+
+        for key, item in matches.items():
+            if len(item) > 0:
+                for i in item:
+                    if not i.chain1.nodes[i.closest_nodes1].visited and not i.chain2.nodes[i.closest_nodes2].visited:
+                        i.chain1.nodes[i.closest_nodes1].visited = True
+                        i.chain2.nodes[i.closest_nodes2].visited = True
+                        merge_chains(i.chains, i.chain1, i.chain2, i.closest_nodes1, i.closest_nodes2)
+                        return True
 
     return False
 
@@ -72,6 +106,10 @@ def get_distance(point1, point2):
 # Data IO methods
 ########################################################################################################################
 
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.visited = False
 
 class Chain:
     """Tracks nodes, sheets, and helices for a certain chain"""
@@ -107,7 +145,7 @@ def read_pdb(pdb_name):
             try:
                 if line[:4] == 'ATOM':
                     data = parse_node(line)
-                    chains[-1].nodes.append(data)
+                    chains[-1].nodes.append(Node(data))
                 elif line[:5] == 'HELIX':
                     data, i = parse_helix(line, chains)
                     chains[i].helices.append(data)
@@ -129,7 +167,7 @@ def write_pdb(chains, file_name):
     offset = 0
     for chain in chains:
         for i in range(len(chain.nodes)):
-            nodes_str.append(format_node(chain.nodes[i], 'A', offset + i + 1))
+            nodes_str.append(format_node(chain.nodes[i].data, 'A', offset + i + 1))
         nodes_str.append('TER\n')
 
         for helix_start, helix_end in chain.helices:
