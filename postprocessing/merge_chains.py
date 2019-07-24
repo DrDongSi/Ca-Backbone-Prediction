@@ -8,9 +8,9 @@ def update_paths(paths):
 
 def execute(paths):
     chains = [c for c in read_pdb(paths['traces_refined']) if len(c.nodes) > 0]
-    #while merge_closest_chains(chains):
-        #pass
-    merge_closest_chains(chains)
+    while merge_closest_chains(chains):
+        pass
+    #merge_closest_chains(chains)
 
     write_pdb(chains, paths['fragments_merged'])
 
@@ -47,23 +47,23 @@ def merge_closest_chains(chains):
                 #merge_chains(chains, chain1, chain2, closest_nodes[0], closest_nodes[1])
                 #return True
 
-    for key in matches.keys():
-        matches[key] = sorted(matches[key], key=lambda d: d.distance)
-        matches[key] = list(filter(lambda d: d.distance > 0, matches[key]))
-        print('--->: ')
-        for item in matches[key]:
-            print(item)
+        for key in matches.keys():
+            matches[key] = sorted(matches[key], key=lambda d: d.distance)
+            matches[key] = list(filter(lambda d: d.distance > 0, matches[key]))
+            print('--->: ')
+            for item in matches[key]:
+                print(item)
 
-    for key, item in matches.items():
-        if len(item) > 0:
-            for i in item:
-                if not i.chain1.nodes[i.closest_nodes1].visited and not i.chain2.nodes[i.closest_nodes2].visited:
-                    i.chain1.nodes[i.closest_nodes1].visited = True
-                    i.chain2.nodes[i.closest_nodes2].visited = True
-                    merge_chains(i.chains, i.chain1, i.chain2, i.closest_nodes1, i.closest_nodes2)
-                    break
+        for key, item in matches.items():
+            if len(item) > 0:
+                for i in item:
+                    if not i.chain1.nodes[i.closest_nodes1].visited and not i.chain2.nodes[i.closest_nodes2].visited:
+                        i.chain1.nodes[i.closest_nodes1].visited = True
+                        i.chain2.nodes[i.closest_nodes2].visited = True
+                        merge_chains(i.chains, i.chain1, i.chain2, i.closest_nodes1, i.closest_nodes2)
+                        return True
 
-    #return False
+    return False
 
 
 def merge_chains(chains, chain1, chain2, at1, at2):
@@ -71,22 +71,22 @@ def merge_chains(chains, chain1, chain2, at1, at2):
         chain1.nodes = chain2.nodes[::-1] + chain1.nodes
         chain1.helices = reverse_indices(chain2.helices, chain2.nodes) + add_offset(chain1.helices, len(chain1.nodes))
         chain1.sheets = reverse_indices(chain2.sheets, chain2.nodes) + add_offset(chain1.sheets, len(chain1.nodes))
-        #chains.remove(chain2)
+        chains.remove(chain2)
     elif at1 == 0:
         chain2.nodes += chain1.nodes
         chain2.helices += add_offset(chain1.helices, len(chain2.nodes))
         chain2.sheets += add_offset(chain1.sheets, len(chain2.nodes))
-        #chains.remove(chain1)
+        chains.remove(chain1)
     elif at2 == 0:
         chain1.nodes += chain2.nodes
         chain1.helices += add_offset(chain2.helices, len(chain2.nodes))
         chain1.sheets += add_offset(chain2.sheets, len(chain2.nodes))
-        #chains.remove(chain2)
+        chains.remove(chain2)
     else:
         chain1.nodes += chain2.nodes[::-1]
         chain1.helices += add_offset(reverse_indices(chain2.helices, chain2.nodes), len(chain1.nodes))
         chain1.sheets += add_offset(reverse_indices(chain2.sheets, chain2.nodes), len(chain1.nodes))
-        #chains.remove(chain2)
+        chains.remove(chain2)
 
 
 def add_offset(sse, offset):
