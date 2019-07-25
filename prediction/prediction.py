@@ -23,7 +23,8 @@ PREDICTION_PIPELINE = [
     pre.normalize_map,
     cnn.predict_with_module,
     post.build_backbone_trace,
-    post.helix_refinement
+    post.helix_refinement,
+    post.merge_chains
 ]
 
 
