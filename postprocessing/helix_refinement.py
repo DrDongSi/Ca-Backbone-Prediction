@@ -485,9 +485,9 @@ def write_pdb(chains, file_name):
 
 def parse_node(line):
     """Parses node data from given 'line'"""
-    return np.array([float(line[31:38]),
-                     float(line[39:46]),
-                     float(line[47:54])])
+    return np.array([float(line[30:38]),
+                     float(line[38:46]),
+                     float(line[46:54])])
 
 
 def parse_helix(line, chains):

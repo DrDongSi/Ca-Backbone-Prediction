@@ -18,9 +18,9 @@ class Evaluator:
         gt_ca_atoms = list()
         for line in gt_pdb:
             if line.startswith("ATOM") and line[13:16] == "CA ":
-                x = float(line[31:38])
-                y = float(line[39:46])
-                z = float(line[47:54])
+                x = float(line[30:38])
+                y = float(line[38:46])
+                z = float(line[46:54])
                 gt_ca_atoms.append(tuple([x, y, z]))
         gt_pdb.close()
         native_ca_atoms = len(gt_ca_atoms)
