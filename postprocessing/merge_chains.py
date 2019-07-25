@@ -37,6 +37,7 @@ def merge_closest_chains(chains):
             ]
 
     possible_connections.sort(key=lambda p: p.distance)
+    possible_connections = list(filter(lambda p: p.distance > 3.8, possible_connections))
     if len(possible_connections) > 0 and possible_connections[0].distance < 10:
         merge_chains(chains,
                      possible_connections[0].chain1,
