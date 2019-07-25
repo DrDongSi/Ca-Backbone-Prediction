@@ -1,5 +1,4 @@
 import numpy as np
-from collections import defaultdict
 
 
 def update_paths(paths):
@@ -52,25 +51,25 @@ def merge_closest_chains(chains):
 
 def merge_chains(chains, chain1, chain2, at1, at2):
     if at1 == 0 and at2 == 0:
+        chain1.helices = reverse_indices(chain2.helices, chain2.nodes) + add_offset(chain1.helices, len(chain2.nodes))
+        chain1.sheets = reverse_indices(chain2.sheets, chain2.nodes) + add_offset(chain1.sheets, len(chain2.nodes))
         chain1.nodes = chain2.nodes[::-1] + chain1.nodes
-        chain1.helices = reverse_indices(chain2.helices, chain2.nodes) + add_offset(chain1.helices, len(chain1.nodes))
-        chain1.sheets = reverse_indices(chain2.sheets, chain2.nodes) + add_offset(chain1.sheets, len(chain1.nodes))
         chains.remove(chain2)
     elif at1 == 0:
-        chain2.nodes += chain1.nodes
         chain2.helices += add_offset(chain1.helices, len(chain2.nodes))
         chain2.sheets += add_offset(chain1.sheets, len(chain2.nodes))
+        chain2.nodes += chain1.nodes
         chains.remove(chain1)
     elif at2 == 0:
+        chain1.helices += add_offset(chain2.helices, len(chain1.nodes))
+        chain1.sheets += add_offset(chain2.sheets, len(chain1.nodes))
         chain1.nodes += chain2.nodes
-        chain1.helices += add_offset(chain2.helices, len(chain2.nodes))
-        chain1.sheets += add_offset(chain2.sheets, len(chain2.nodes))
         chains.remove(chain2)
     else:
-        chain1.nodes += chain2.nodes[::-1]
         chain1.helices += add_offset(reverse_indices(chain2.helices, chain2.nodes), len(chain1.nodes))
         chain1.sheets += add_offset(reverse_indices(chain2.sheets, chain2.nodes), len(chain1.nodes))
         chains.remove(chain2)
+        chain1.nodes += chain2.nodes[::-1]
 
 
 def add_offset(sse, offset):
@@ -78,7 +77,7 @@ def add_offset(sse, offset):
 
 
 def reverse_indices(sse, nodes):
-    return sorted([[len(nodes) - i - 1 for i in i_s][::-1] for i_s in sse], key=lambda i_s: i_s[0])
+    return [[len(nodes) - i - 1 for i in i_s][::-1] for i_s in sse][::-1]
 
 
 def get_distance(point1, point2):
@@ -94,6 +93,7 @@ class Node:
     def __init__(self, data):
         self.data = data
         self.visited = False
+
 
 class Chain:
     """Tracks nodes, sheets, and helices for a certain chain"""
@@ -170,16 +170,16 @@ def write_pdb(chains, file_name):
 
 def parse_node(line):
     """Parses node data from given 'line'"""
-    return np.array([float(line[31:38]),
-                     float(line[39:46]),
-                     float(line[47:54])])
+    return np.array([float(line[30:38]),
+                     float(line[38:46]),
+                     float(line[46:54])])
 
 
 def parse_helix(line, chains):
     """Parses helix data from given 'line' and calculates chain index 'i' from
     'chains'"""
     i = 0
-    data = [int(line[21:25]) - 1, int(line[33:37])]
+    data = [int(line[21:25]) - 1, int(line[33:37]) - 1]
     for chain in chains:
         if data[1] <= len(chain.nodes):
             break
@@ -226,7 +226,7 @@ def format_helix_info(chain, node_from, node_to):
         chain + ' ' + \
         str(node_from + 1).rjust(4) + '  GLY ' + \
         chain + ' ' + \
-        str(node_to).rjust(4) + '  1\n'
+        str(node_to + 1).rjust(4) + '  1\n'
 
 
 def format_sheet_info(chain, node_from, node_to):
