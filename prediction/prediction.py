@@ -6,7 +6,7 @@ All prediction steps have to be added to the prediction pipeline.
 import os
 import sys
 from shutil import copyfile
-from multiprocessing import cpu_count, Pool
+from multiprocessing import cpu_count, Pool, Semaphore
 from time import time
 import traceback
 from .evaluation import Evaluator
@@ -57,7 +57,9 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
                    for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
-    pool = Pool(min(cpu_count(), len(params_list)))
+    max_processes_allowed_to_access_tensorflow = 4
+    semaphore = Semaphore(min(min(cpu_count(), len(params_list)), max_processes_allowed_to_access_tensorflow))
+    pool = Pool(min(cpu_count(), len(params_list)), initializer=init_child, initargs=(semaphore,))
     results = pool.map(run_prediction, params_list)
 
     # Filter 'None' results
@@ -68,6 +70,10 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
         evaluator.evaluate(emdb_id, predicted_file, gt_file, execution_time)
 
     evaluator.create_report(output_path, time() - start_time)
+
+def init_child(semaphore_):
+    global semaphore
+    semaphore = semaphore_
 
 
 def run_prediction(params):
