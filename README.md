@@ -27,6 +27,8 @@ An optional flag `-s` followed by a number `n` can be passed as an argument to s
 
 Another optional flag `-c` can be set if you don't want to re-predict protein maps for which all/part of the results are already available in the output path. If set only prediction steps for which the results are not there yet are executed.
 
+Another optional flag `-b` can be set if you want to keep mrc files for debugging purposes. Note: This will take up a lot more memory.
+
 An example command to execute the prediction could therefore be the following.
 
 `python main.py INPUT_PATH OUTPUT_PATH -t THRESHOLD_FILE`

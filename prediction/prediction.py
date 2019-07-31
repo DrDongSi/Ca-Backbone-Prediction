@@ -28,7 +28,7 @@ PREDICTION_PIPELINE = [
 ]
 
 
-def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file):
+def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug):
     """Creates thread pool which will concurrently run the prediction for every
     protein map in the 'input_path'
 
@@ -53,7 +53,7 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
         existing in the output path yet
     """
     # Create list of parameters for every prediction
-    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file)
+    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug)
                    for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
@@ -93,7 +93,7 @@ def run_prediction(params):
         file, and execution time respectively
     """
     # Unpack parameters
-    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file = params
+    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug = params
     paths = make_paths(input_path, emdb_id, thresholds_file, hidedusts_file)
 
     start_time = time()
@@ -115,6 +115,15 @@ def run_prediction(params):
 
     if 'traces_refined' in paths:
         copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
+
+    if debug is False:
+        os.remove(paths['cleaned_map'])
+        os.remove(paths['normalized_map'])
+        os.remove(paths['loops_confidence'])
+        os.remove(paths['sheet_confidence'])
+        os.remove(paths['helix_confidence'])
+        os.remove(paths['backbone_confidence'])
+        os.remove(paths['ca_confidence'])
 
     return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
 
