@@ -10,14 +10,11 @@ method
 
 import subprocess
 import os
-from shutil import copyfile
 import json
 
 
 def update_paths(paths):
     paths['cleaned_map'] = paths['output'] + 'cleaned_map.mrc'
-    paths['blank_ent'] = paths['output'] + 'blank.ent'
-    paths['blank_centered_ent'] = paths['output'] + 'blank_centered.ent'
 
 
 def execute(paths):
@@ -30,45 +27,15 @@ def execute(paths):
         prediction
     """
 
-    copyfile(os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/blank.ent', paths['blank_ent'])
-
     chimera_script = open(paths['output'] + 'resample.cmd', 'w')
 
-    if 'hidedusts_file' in paths:
-        emdb_id = paths['input'].split('/')[-2]
-        with open(paths['hidedusts_file']) as f:
-            hidedusts = json.load(f)
+    chimera_script.write('open %s\n' % paths['input'] +
+                         'volume #0 voxelSize 1\n'
+                         'volume #0 level %d\n' % get_threshold(paths) +
+                         'sop hideDust #0 size 30\n'
+                         'vop gaussian #0 sDev 0.5\n'
+                         'volume #1 save ' + paths['cleaned_map'])
 
-    if 'hidedusts_file' in paths and emdb_id in hidedusts:
-        level, hidedust_size = hidedusts[emdb_id]
-
-        chimera_script.write('open ' + paths['input'] + '\n'
-                         'cofr models\n'
-                         'cofr fixed\n'
-                         'open ' + paths['blank_ent'] + '\n'                         
-                         'move cofr mod #1\n'
-                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
-                         'molmap #2 6 gridSpacing 1\n'                        
-                         'volume #0 level ' + str(level) + '\n'
-                         'sop hideDust #0 size ' + str(hidedust_size) + '\n'
-                         'sel #0\n'
-                         'mask sel #0\n'
-                         'vop resample #3 onGrid #2.1\n'
-                         'volume #4 save ' + paths['cleaned_map'])
-    else:
-        chimera_script.write('open ' + paths['input'] + '\n'
-                         'cofr models\n'
-                         'cofr fixed\n'
-                         'open ' + paths['blank_ent'] + '\n'                         
-                         'move cofr mod #1\n'
-                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
-                         'molmap #2 6 gridSpacing 1\n'                        
-                         'sel #0\n'
-                         'vop resample sel onGrid #2.1\n'
-                         'volume #3 save ' + paths['cleaned_map'])
-                     
     chimera_script.close()
 
     script_finished = False
@@ -81,6 +48,20 @@ def execute(paths):
                 raise error
 
     os.remove(chimera_script.name)
+
+
+def get_threshold(paths):
+    if 'thresholds_file' in paths:
+        emdb_id = paths['input'].split('/')[-2]
+
+        with open(paths['thresholds_file']) as f:
+            thresholds = json.load(f)
+
+        if emdb_id in thresholds:
+            return thresholds[emdb_id]
+
+    with open(paths['threshold']) as f:
+        return float(f.readline())
 
 
 def create_symbolic_link():
