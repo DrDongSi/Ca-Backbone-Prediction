@@ -66,7 +66,10 @@ class Evaluator:
                 if is_fp:
                     num_fp += 1
 
-        fp_per = num_fp / len(pred_ca_atoms)
+        if len(pred_ca_atoms) > 0:
+            fp_per = num_fp / len(pred_ca_atoms)
+        else:
+            fp_per = -1
 
         total_ca = 0
         squared_sum = 0
