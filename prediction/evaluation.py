@@ -32,9 +32,9 @@ class Evaluator:
             if line.startswith("ATOM") and line[13:16] == "CA ":
                 modeled_ca += 1
                 index = int(line[23:26])
-                x = float(line[31:38])
-                y = float(line[39:46])
-                z = float(line[47:54])
+                x = float(line[30:38])
+                y = float(line[38:46])
+                z = float(line[46:54])
                 if index != previous_index + 1:
                     pred_ca_atoms.append(list())
                 pred_ca_atoms[len(pred_ca_atoms) - 1].append(tuple([x, y, z]))

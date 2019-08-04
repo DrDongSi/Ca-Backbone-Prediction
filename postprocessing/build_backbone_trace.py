@@ -416,9 +416,11 @@ def print_ca_sets(set_of_ca_sets, offset, file_name):
     counter = 0
     for index in range(len(set_of_ca_sets)):
         next_set = set_of_ca_sets[index]
-        counter += 1
+        counter += 1       
         for ca in range(len(next_set)):
-            confidence_walk_pdb.write('ATOM      1  CA  GLY A' + str(counter).rjust(4) +
+            seq_num = counter % 10000
+            chain_letter = chr((counter // 10000) + 65)
+            confidence_walk_pdb.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) +
                                       '    ' + '{0:.3f}'.format(next_set[ca][2] + offset[0]).rjust(8) +
                                       '{0:.3f}'.format(next_set[ca][1] + offset[1]).rjust(8) +
                                       '{0:.3f}'.format(next_set[ca][0] + offset[2]).rjust(8) +
@@ -745,7 +747,10 @@ class Graph:
                         sheet_traces.append(cur_sheet)
                         sheet_chains.append(cur_chain)
                         cur_sheet = None
-                writer.write('ATOM      1  CA  GLY A' + str(counter + cur_chain).rjust(4) + '    ' +
+
+                seq_num = (counter + cur_chain) % 10000
+                chain_letter = chr(((counter + cur_chain) // 10000) + 65)
+                writer.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) + '    ' +
                              '{0:.3f}'.format(ca[0]).rjust(8) +
                              '{0:.3f}'.format(ca[1]).rjust(8) +
                              '{0:.3f}'.format(ca[2]).rjust(8) +
@@ -829,12 +834,16 @@ class Graph:
                 node_location = node.get_location()
                 representation = repr(edge) + repr(node_location)
                 if representation not in already_written:
-                    writer.write('ATOM      1  CA  GLY A' + str(counter).rjust(4) + '    ' +
+                    seq_num = counter % 10000
+                    chain_letter = chr((counter // 10000) + 65)
+                    writer.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) + '    ' +
                                  '{0:.3f}'.format(node_location[0]).rjust(8) +
                                  '{0:.3f}'.format(node_location[1]).rjust(8) +
                                  '{0:.3f}'.format(node_location[2]).rjust(8) +
                                  '  1.00  0.00           C  \n')
-                    writer.write('ATOM      1  CA  GLY A' + str(counter + 1).rjust(4) + '    ' +
+                    seq_num = (counter + 1) % 10000
+                    chain_letter = chr(((counter + 1) // 10000) + 65)
+                    writer.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) + '    ' +
                                  '{0:.3f}'.format(edge[0]).rjust(8) +
                                  '{0:.3f}'.format(edge[1]).rjust(8) +
                                  '{0:.3f}'.format(edge[2]).rjust(8) +

@@ -13,10 +13,12 @@ if __name__ == '__main__':
                         help='Check if results already exists and if so skip prediction step')
     parser.add_argument('-d', '--hidedusts', metavar='HideDusts', type=str,
                         help='JSON file which contains the hide dust sizes')
+    parser.add_argument('-b', '--debug', action='store_const', const=True, default=False,
+                        help='Enter debug mode, where mrc files are kept, otherwise mrc files are deleted at end to save memory')
 
     args = parser.parse_args()
 
     args.input += '/' if args.input[-1] != '/' else ''
     args.output += '/' if args.output[-1] != '/' else ''
 
-    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing, args.hidedusts)
+    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing, args.hidedusts, args.debug)
