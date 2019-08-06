@@ -89,12 +89,6 @@ def get_distance(point1, point2):
 # Data IO methods
 ########################################################################################################################
 
-class Node:
-    def __init__(self, data):
-        self.data = data
-        self.visited = False
-
-
 class Chain:
     """Tracks nodes, sheets, and helices for a certain chain"""
     def __init__(self):
@@ -151,7 +145,7 @@ def write_pdb(chains, file_name):
     offset = 0
     for chain in chains:
         for i in range(len(chain.nodes)):
-            nodes_str.append(format_node(chain.nodes[i].data, 'A', offset + i + 1))
+            nodes_str.append(format_node(chain.nodes[i], 'A', offset + i + 1))
         nodes_str.append('TER\n')
 
         for helix_start, helix_end in chain.helices:
