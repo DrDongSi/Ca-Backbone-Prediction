@@ -1,6 +1,9 @@
 ## Citation
 Paper citation with more information: Spencer Moritz, Jonas Pfab, Tianqi Wu, Jie Hou, Jianlin Cheng, Renzhi Cao, Liguo Wang, Dong Si. (2019). Cascaded-CNN: Deep Learning to Predict Protein Backbone Structure from High-Resolution Cryo-EM Density Maps. 10.1101/572990.
 
+## Sequence Mapping
+The code which maps protein sequences into the predicted Cα traces can be found [here](https://github.com/jianlin-cheng/CryoEMSeq/).
+
 ## Cα Backbone Prediction from Cryo-EM
 Deep Learning for Cα Backbone Prediction from High Resolution CryoEM Data
 
