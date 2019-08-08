@@ -6,7 +6,7 @@ All prediction steps have to be added to the prediction pipeline.
 import os
 import sys
 from shutil import copyfile
-from multiprocessing import cpu_count, Pool
+from multiprocessing import cpu_count, Pool, Semaphore
 from time import time
 import traceback
 from .evaluation import Evaluator
@@ -28,7 +28,7 @@ PREDICTION_PIPELINE = [
 ]
 
 
-def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file):
+def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug):
     """Creates thread pool which will concurrently run the prediction for every
     protein map in the 'input_path'
 
@@ -53,11 +53,13 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
         existing in the output path yet
     """
     # Create list of parameters for every prediction
-    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file)
+    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug)
                    for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
-    pool = Pool(min(cpu_count(), len(params_list)))
+    max_processes_allowed_to_access_tensorflow = 4
+    semaphore = Semaphore(min(min(cpu_count(), len(params_list)), max_processes_allowed_to_access_tensorflow))
+    pool = Pool(min(cpu_count(), len(params_list)), initializer=init_child, initargs=(semaphore,))
     results = pool.map(run_prediction, params_list)
 
     # Filter 'None' results
@@ -68,6 +70,10 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
         evaluator.evaluate(emdb_id, predicted_file, gt_file, execution_time)
 
     evaluator.create_report(output_path, time() - start_time)
+
+def init_child(semaphore_):
+    global semaphore
+    semaphore = semaphore_
 
 
 def run_prediction(params):
@@ -87,7 +93,7 @@ def run_prediction(params):
         file, and execution time respectively
     """
     # Unpack parameters
-    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file = params
+    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug = params
     paths = make_paths(input_path, emdb_id, thresholds_file, hidedusts_file)
 
     start_time = time()
@@ -109,6 +115,15 @@ def run_prediction(params):
 
     if 'traces_refined' in paths:
         copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
+
+    if debug is False:
+        os.remove(paths['cleaned_map'])
+        os.remove(paths['normalized_map'])
+        os.remove(paths['loops_confidence'])
+        os.remove(paths['sheet_confidence'])
+        os.remove(paths['helix_confidence'])
+        os.remove(paths['backbone_confidence'])
+        os.remove(paths['ca_confidence'])
 
     return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
 

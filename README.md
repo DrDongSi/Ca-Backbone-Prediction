@@ -1,6 +1,9 @@
 ## Citation
 Paper citation with more information: Spencer Moritz, Jonas Pfab, Tianqi Wu, Jie Hou, Jianlin Cheng, Renzhi Cao, Liguo Wang, Dong Si. (2019). Cascaded-CNN: Deep Learning to Predict Protein Backbone Structure from High-Resolution Cryo-EM Density Maps. 10.1101/572990.
 
+## Sequence Mapping
+The code which maps protein sequences into the predicted Cα traces can be found [here](https://github.com/jianlin-cheng/CryoEMSeq/).
+
 ## Cα Backbone Prediction from Cryo-EM
 Deep Learning for Cα Backbone Prediction from High Resolution CryoEM Data
 
@@ -22,10 +25,14 @@ The backbone prediction can be run by invoking the `main.py` script located in t
 
 In addition to the input and output path we can also provide a JSON file containing threshold values for each protein using `-t THRESHOLD_FILE `. If this file is not provided threshold values are determined automatically which can lead to worse prediction results.
 
+Another optional JSON file that can be passed is the hide dusts json file using `-d HIDEDUSTS_FILE`. If this file is not provided results can be slightly worse due to dust noise. 
+
 An optional flag `-s` followed by a number `n` can be passed as an argument to skip the first `n` prediction steps.
 > Skipping prediction steps is only possible if the results of the skipped steps are already available in the output path
 
 Another optional flag `-c` can be set if you don't want to re-predict protein maps for which all/part of the results are already available in the output path. If set only prediction steps for which the results are not there yet are executed.
+
+Another optional flag `-b` can be set if you want to keep mrc files for debugging purposes. Note: This will take up a lot more memory.
 
 An example command to execute the prediction could therefore be the following.
 
