@@ -13,6 +13,7 @@ import numpy as np
 from copy import deepcopy
 import math
 from collections import deque
+from .pdb_reader_writer import PDB_Reader_Writer
 
 __author__ = 'Spencer Moritz'
 
@@ -96,7 +97,7 @@ def confidence_walk(prediction_image, offset, backbone_image, output_file):
     num_ca_edges_hash = np.zeros((np.shape(prediction_image)))
     untouched_prediction = deepcopy(prediction_image)
     set_of_ca_sets = list()
-    for index in range(10000):
+    for index in range(2436111 + 1):
         # Find and update for the high-confident location
         location = find_highest_confidence_ca(prediction_image, set_of_ca_sets)
         if location is None:
@@ -418,13 +419,7 @@ def print_ca_sets(set_of_ca_sets, offset, file_name):
         next_set = set_of_ca_sets[index]
         counter += 1       
         for ca in range(len(next_set)):
-            seq_num = counter % 10000
-            chain_letter = chr((counter // 10000) + 65)
-            confidence_walk_pdb.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) +
-                                      '    ' + '{0:.3f}'.format(next_set[ca][2] + offset[0]).rjust(8) +
-                                      '{0:.3f}'.format(next_set[ca][1] + offset[1]).rjust(8) +
-                                      '{0:.3f}'.format(next_set[ca][0] + offset[2]).rjust(8) +
-                                      '  1.00  0.00           C  \n')
+            PDB_Reader_Writer.write_single_pdb(file=confidence_walk_pdb, type='ATOM', chain='A', node=np.array([(next_set[ca][2] + offset[0]),(next_set[ca][1] + offset[1]),(next_set[ca][0] + offset[2])]), seqnum=counter)
             counter += 1
     confidence_walk_pdb.close()
 
@@ -748,15 +743,9 @@ class Graph:
                         sheet_chains.append(cur_chain)
                         cur_sheet = None
 
-                seq_num = (counter + cur_chain) % 10000
-                chain_letter = chr(((counter + cur_chain) // 10000) + 65)
-                writer.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) + '    ' +
-                             '{0:.3f}'.format(ca[0]).rjust(8) +
-                             '{0:.3f}'.format(ca[1]).rjust(8) +
-                             '{0:.3f}'.format(ca[2]).rjust(8) +
-                             '  1.00  0.00           C  \n')
+                PDB_Reader_Writer.write_single_pdb(file=writer, type='ATOM', chain='A', node=np.array([ca[0],ca[1],ca[2]]), seqnum=(counter + cur_chain))
                 counter += 1
-            writer.write('TER\n')
+            PDB_Reader_Writer.write_single_pdb(file=writer, type='TER')
 
             if cur_helix is not None: # Fence-Posting
                 helix_traces.append(cur_helix)
@@ -770,15 +759,13 @@ class Graph:
             start = str(helix_traces[index][0] + chain)
             end = str(helix_traces[index][len(helix_traces[index]) - 1] + chain)
             length = str(len(helix_traces[index]))
-            writer.write('HELIX    1   1 GLY A ' + start.rjust(4) +
-                         '  GLY A ' + end.rjust(4) + '  1                                  ' +
-                         length + '\n')
+            PDB_Reader_Writer.write_single_pdb(file=writer, type='HELIX', chain='A', node_from=start, node_to=end)
 
         for index, trace in enumerate(sheet_traces):
             chain = sheet_chains[index]
             start = str(sheet_traces[index][0] + chain)
             end = str(sheet_traces[index][len(sheet_traces[index]) - 1] + chain)
-            writer.write('SHEET    1   A 6 GLY A' + start.rjust(4) + '  GLY A' + end.rjust(4) + '  0\n')
+            PDB_Reader_Writer.write_single_pdb(file=writer, type='SHEET', chain='A', node_from=start, node_to=end)
 
         writer.close()
 
@@ -834,20 +821,8 @@ class Graph:
                 node_location = node.get_location()
                 representation = repr(edge) + repr(node_location)
                 if representation not in already_written:
-                    seq_num = counter % 10000
-                    chain_letter = chr((counter // 10000) + 65)
-                    writer.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) + '    ' +
-                                 '{0:.3f}'.format(node_location[0]).rjust(8) +
-                                 '{0:.3f}'.format(node_location[1]).rjust(8) +
-                                 '{0:.3f}'.format(node_location[2]).rjust(8) +
-                                 '  1.00  0.00           C  \n')
-                    seq_num = (counter + 1) % 10000
-                    chain_letter = chr(((counter + 1) // 10000) + 65)
-                    writer.write('ATOM      1  CA  GLY ' + chain_letter + str(seq_num).rjust(4) + '    ' +
-                                 '{0:.3f}'.format(edge[0]).rjust(8) +
-                                 '{0:.3f}'.format(edge[1]).rjust(8) +
-                                 '{0:.3f}'.format(edge[2]).rjust(8) +
-                                 '  1.00  0.00           C  \n')
+                    PDB_Reader_Writer.write_single_pdb(file=writer, type='ATOM', chain='A', node=np.array([node_location[0],node_location[1],node_location[2]]), seqnum=counter)
+                    PDB_Reader_Writer.write_single_pdb(file=writer, type='ATOM', chain='A', node=np.array([edge[0],edge[1],edge[2]]), seqnum=(counter + 1))
                     counter += 3
                     already_written.append(repr(node_location) + repr(edge))
         writer.close()
@@ -904,10 +879,8 @@ def make_graph(pdb_file):
     cur_index = -1
     for line in pdb_file:
         if line.startswith("ATOM"):
-            index = int(line[22:26])
-            x = float(line[30:38])
-            y = float(line[38:46])
-            z = float(line[46:54])
+            index = PDB_Reader_Writer.read_single_pdb_line(type='ATOM INDEX', line=line)
+            x, y, z = PDB_Reader_Writer.read_single_pdb_line(type='ATOM', line=line)
             if index == cur_index + 1:
                 previous = graph.get_node(previous_location)
                 previous.add_edge([x, y, z])

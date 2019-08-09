@@ -230,14 +230,50 @@ class PDB_Reader_Writer:
             pdb_file.write(''.join(sheets_str))
 
 
-    def __parse_node(self, line):
+    @staticmethod
+    def write_single_pdb(file, type='ATOM', chain='A', node=np.array([0,0,0]), seqnum=0, node_from=0, node_to=0):
+        """Given a file writes ATOM, HELIX, or SHEET upon specification"""
+        if type == 'ATOM':
+            file.write(PDB_Reader_Writer.__format_node(node, chain, seqnum))
+        elif type == 'HELIX':
+            file.write(PDB_Reader_Writer.__format_helix_info(chain, node_from, node_to))
+            pass
+        elif type == 'SHEET':
+            file.write(PDB_Reader_Writer.__format_sheet_info(chain, node_from, node_to))
+            pass
+        elif type == 'TER':
+            file.write('TER\n')
+
+
+    @staticmethod
+    def read_single_pdb_line(type='ATOM', line=''):
+        """Given a file reads ATOM, HELIX, or SHEET upon specification"""
+        if type == 'ATOM':
+            return PDB_Reader_Writer.__parse_node(line)
+        elif type == 'ATOM INDEX':
+            return PDB_Reader_Writer.__parse_nodes_index(line)
+        elif type == 'HELIX':
+            return PDB_Reader_Writer.__parse_helix_info(line)
+        elif type == 'SHEET':
+            return PDB_Reader_Writer.__format_sheet_info
+
+
+    @staticmethod
+    def __parse_nodes_index(line):
+        """Parse node's index from given 'line'"""
+        return int(line[22:26])
+
+
+    @staticmethod
+    def __parse_node(line):
         """Parses node data from given 'line'"""
         return np.array([float(line[30:38]),
                          float(line[38:46]),
                          float(line[46:54])])
 
 
-    def __parse_helix(self, line, chains):
+    @staticmethod
+    def __parse_helix(line, chains):
         """Parses helix data from given 'line' and calculates chain index 'i' from
         'chains'"""
         i = 0
@@ -253,7 +289,8 @@ class PDB_Reader_Writer:
         return data, i
 
 
-    def __parse_sheet(self, line, chains):
+    @staticmethod
+    def __parse_sheet(line, chains):
         """Parses sheet data from given 'line' and calculates chain index 'i' from
         'chains'"""
         i = 0
@@ -269,7 +306,8 @@ class PDB_Reader_Writer:
         return data, i
 
 
-    def __format_node(self, node, chain, n):
+    @staticmethod
+    def __format_node(node, chain, n):
         """Encodes node to str in PDB format"""
         return \
             'ATOM      1  CA  GLY ' + \
@@ -281,24 +319,26 @@ class PDB_Reader_Writer:
             '  1.00  0.00           C  \n'
 
 
-    def __format_helix_info(self, chain, node_from, node_to):
+    @staticmethod
+    def __format_helix_info(chain, node_from, node_to):
         """Encodes helix info to str in PDB format"""
         return \
             'HELIX    1   1 GLY ' + \
             chain + ' ' + \
-            Hybrid36.hy36encode(4, node_from + 1).rjust(4) + '  GLY ' + \
+            Hybrid36.hy36encode(4, int(node_from) + 1).rjust(4) + '  GLY ' + \
             chain + ' ' + \
-            Hybrid36.hy36encode(4, node_to + 1).rjust(4) + '  1\n'
+            Hybrid36.hy36encode(4, int(node_to) + 1).rjust(4) + '  1\n'
 
 
-    def __format_sheet_info(self, chain, node_from, node_to):
+    @staticmethod
+    def __format_sheet_info(chain, node_from, node_to):
         """Encodes sheet info to str in PDB format"""
         return \
             'SHEET    1   A 6 GLY ' + \
             chain + \
-            Hybrid36.hy36encode(4, node_from + 1).rjust(4) + '  GLY ' + \
+            Hybrid36.hy36encode(4, int(node_from) + 1).rjust(4) + '  GLY ' + \
             chain + \
-            Hybrid36.hy36encode(4, node_to + 1).rjust(4) + '  0\n'
+            Hybrid36.hy36encode(4, int(node_to) + 1).rjust(4) + '  0\n'
 
 
 
