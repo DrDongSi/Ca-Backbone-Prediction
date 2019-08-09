@@ -18,9 +18,8 @@ from copy import deepcopy
 
 def update_paths(paths):
     paths['cleaned_map'] = paths['output'] + 'cleaned_map.mrc'
-    paths['blank_ent'] = paths['output'] + 'blank.ent'
-    paths['blank_centered_ent'] = paths['output'] + 'blank_centered.ent'
     paths['bounding_box'] = paths['output'] + 'bounding_box.pdb'
+    paths['bounding_box_centered'] = paths['output'] + 'bounding_box_centered.pdb'
 
 
 def execute(paths):
@@ -67,6 +66,9 @@ def execute(paths):
         'cofr fixed \n' +
         'open %s\n' % paths['bounding_box'] +
         'mov cofr mod #1\n' +
+        'write relative #0 #1 %s\n' % paths['bounding_box_centered'] +
+        'close #1\n' +
+        'open %s\n' % paths['bounding_box_centered'] +
         'molmap #1 6 gridSpacing 1\n' +
         'vop resample #0 onGrid #1.1\n' +
         'volume #2 level %f\n' % get_threshold(paths) +
