@@ -2,7 +2,7 @@ import numpy as np
 
 
 def update_paths(paths):
-    paths['fragments_merged'] = paths['output'] + 'fragments_merged.pdb'
+    paths['traces_merged'] = paths['output'] + 'traces_merged.pdb'
 
 
 def execute(paths):
@@ -10,7 +10,7 @@ def execute(paths):
     while merge_closest_chains(chains):
         pass
 
-    write_pdb(chains, paths['fragments_merged'])
+    write_pdb(chains, paths['traces_merged'])
 
 
 class PossibleConnection:
