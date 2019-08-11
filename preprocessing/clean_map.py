@@ -70,20 +70,14 @@ def execute(paths):
         'open %s' % paths['bounding_box_centered'],
         'molmap #1 6 gridSpacing 1',
         'vop resample #0 onGrid #1.1',
-        # 'vop gaussian #2 sDev 0.5',
-        'volume #2 save %s' % paths['cleaned_map']
-    ])
-
-    # This can fail if the map does not contain any dust. However, the
-    # prediction can continue.
-    chimera_run(paths, [
-        'open %s' % paths['cleaned_map'],
-        'volume #0 level %f' % get_threshold(paths),
-        'volume #0 step 1',
-        'sop hideDust #0 size 30',
-        'sop invertShown #0',
-        'mask #0 #0 invert true',
-        'volume #1 save %s' % paths['cleaned_map']
+        'volume #2 save %s' % paths['cleaned_map'],
+        'volume #2 level %f' % get_threshold(paths),
+        'volume #2 step 1',
+        'sop hideDust #2 size 30',
+        'sop invertShown #2',
+        'mask #2 #2 invert true',
+        'vop gaussian #3 sDev 1',
+        'volume #4 save %s' % paths['cleaned_map']
     ])
 
 
