@@ -76,7 +76,7 @@ def execute(paths):
         'sop hideDust #2 size 30',
         'sop invertShown #2',
         'mask #2 #2 invert true',
-        'volume #4 save %s' % paths['cleaned_map']
+        'volume #3 save %s' % paths['cleaned_map']
     ])
 
 
