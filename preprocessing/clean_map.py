@@ -59,30 +59,40 @@ def execute(paths):
                      '{0:.3f}'.format(atom[0] + origin[2]).rjust(8) +
                      '  1.00  0.00           C  \n')
 
-    chimera_script = open(paths['output'] + 'resample.cmd', 'w')
-    chimera_script.write(
-        'open %s\n' % paths['input'] +
-        'cofr models\n' +
-        'cofr fixed \n' +
-        'open %s\n' % paths['bounding_box'] +
-        'mov cofr mod #1\n' +
-        'write relative #0 #1 %s\n' % paths['bounding_box_centered'] +
-        'close #1\n' +
-        'open %s\n' % paths['bounding_box_centered'] +
-        'molmap #1 6 gridSpacing 1\n' +
-        'vop resample #0 onGrid #1.1\n' +
-        'volume #2 level %f\n' % get_threshold(paths) +
-        'volume #2 step 1\n' +
-        'sop hideDust #2 size 30\n' +
-        'sop invertShown #2\n' +
-        'mask #2 #2 invert true\n' +
-        'vop gaussian #3 sDev 0.5\n' +
-        'volume #4 save %s\n' % paths['cleaned_map']
-    )
-    chimera_script.close()
+    chimera_run(paths, [
+        'open %s' % paths['input'],
+        'cofr models',
+        'cofr fixed',
+        'open %s' % paths['bounding_box'],
+        'mov cofr mod #1',
+        'write relative #0 #1 %s' % paths['bounding_box_centered'],
+        'close #1',
+        'open %s' % paths['bounding_box_centered'],
+        'molmap #1 6 gridSpacing 1',
+        'vop resample #0 onGrid #1.1',
+        # 'vop gaussian #2 sDev 0.5',
+        'volume #2 save %s' % paths['cleaned_map']
+    ])
 
-    subprocess.run(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
-    os.remove(chimera_script.name)
+    # This can fail if the map does not contain any dust. However, the
+    # prediction can continue.
+    chimera_run(paths, [
+        'open %s' % paths['cleaned_map'],
+        'volume #0 level %f' % get_threshold(paths),
+        'volume #0 step 1',
+        'sop hideDust #0 size 30',
+        'sop invertShown #0',
+        'mask #0 #0 invert true',
+        'volume #1 save %s' % paths['cleaned_map']
+    ])
+
+
+def chimera_run(paths, commands):
+    with open(paths['output'] + 'clean_map.cmd', 'w') as fp:
+        fp.write('\n'.join(commands))
+
+    subprocess.run(['/usr/local/bin/chimera', '--nogui', fp.name])
+    os.remove(fp.name)
 
 
 def get_threshold(paths):
