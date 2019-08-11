@@ -6,9 +6,11 @@ def update_paths(paths):
 
 
 def execute(paths):
-    chains = [c for c in read_pdb(paths['traces_refined']) if len(c.nodes) > 0]
+    chains = [c for c in read_pdb(paths['traces']) if len(c.nodes) > 0]
     while merge_closest_chains(chains):
         pass
+
+    chains = [c for c in chains if len(c.nodes) > 5]
 
     write_pdb(chains, paths['traces_merged'])
 
