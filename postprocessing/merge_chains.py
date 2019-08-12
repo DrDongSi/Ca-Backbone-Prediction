@@ -14,7 +14,7 @@ def execute(paths):
 
     chains = [c for c in chains if len(c.nodes) > 5]
 
-    reader_writer.write_pdb(chains, paths['fragments_merged'])
+    reader_writer.write_pdb(chains, paths['traces_merged'])
 
 
 class PossibleConnection:
