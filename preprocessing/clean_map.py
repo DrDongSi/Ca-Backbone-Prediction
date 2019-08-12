@@ -14,6 +14,7 @@ import json
 import mrcfile
 import numpy as np
 from copy import deepcopy
+from postprocessing.pdb_reader_writer import PDB_Reader_Writer
 
 
 def update_paths(paths):
@@ -52,11 +53,13 @@ def execute(paths):
         n = 0
         for atom in atoms:
             n += 1
-            fp.write('ATOM      1  CA  GLY A' + str(n).rjust(4) +
-                     '    ' + '{0:.3f}'.format(atom[2] + origin[0]).rjust(8) +
-                     '{0:.3f}'.format(atom[1] + origin[1]).rjust(8) +
-                     '{0:.3f}'.format(atom[0] + origin[2]).rjust(8) +
-                     '  1.00  0.00           C  \n')
+            PDB_Reader_Writer.write_single_pdb(
+                file=fp,
+                type='ATOM',
+                chain='A',
+                node=np.array([atom[2], atom[1], atom[0]]),
+                seqnum=n
+            )
 
     chimera_run(paths, [
         'open %s' % paths['input'],
