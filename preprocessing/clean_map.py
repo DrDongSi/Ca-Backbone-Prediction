@@ -33,7 +33,6 @@ def execute(paths):
         prediction
     """
     input_map = mrcfile.open(paths['input'])
-    origin = input_map.header.origin.item(0)
     input_data = deepcopy(input_map.data)
     input_data[input_data < get_threshold(paths)] = 0
 
