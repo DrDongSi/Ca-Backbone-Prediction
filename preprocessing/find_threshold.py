@@ -34,7 +34,7 @@ def execute(paths):
     if is_threshold_provided(paths):
         return
 
-    map_data = deepcopy(mrcfile.open(paths['cleaned_map'], mode='r').data).ravel()
+    map_data = deepcopy(mrcfile.open(paths['input'], mode='r').data).ravel()
     num_non_zero_values = count_values(map_data, 0)
 
     # Find threshold value such that the surface area to volume ratio is 0.9
@@ -87,7 +87,7 @@ def sav(threshold, paths):
         Surface area to volume ratio
     """
     chimera_script = open(paths['output'] + 'measure.cmd', 'w')
-    chimera_script.write('open ' + paths['cleaned_map'] + '\n'
+    chimera_script.write('open ' + paths['input'] + '\n'
                          'volume #0 level ' + str(threshold) + '\n'
                          'measure volume #0\n'
                          'measure area #0\n')
