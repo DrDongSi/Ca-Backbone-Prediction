@@ -50,8 +50,7 @@ def execute(paths):
 
     with open(paths['bounding_box'], 'w') as fp:
         n = 0
-        for i in range(min(100, len(atoms))):
-            atom = atoms[i]
+        for atom in atoms:
             n += 1
             fp.write('ATOM      1  CA  GLY A' + str(n).rjust(4) +
                      '    ' + '{0:.3f}'.format(atom[2] + origin[0]).rjust(8) +
