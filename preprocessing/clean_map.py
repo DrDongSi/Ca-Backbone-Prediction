@@ -10,14 +10,16 @@ method
 
 import subprocess
 import os
-from shutil import copyfile
 import json
+import mrcfile
+import numpy as np
+from copy import deepcopy
 
 
 def update_paths(paths):
     paths['cleaned_map'] = paths['output'] + 'cleaned_map.mrc'
-    paths['blank_ent'] = paths['output'] + 'blank.ent'
-    paths['blank_centered_ent'] = paths['output'] + 'blank_centered.ent'
+    paths['bounding_box'] = paths['output'] + 'bounding_box.pdb'
+    paths['bounding_box_centered'] = paths['output'] + 'bounding_box_centered.pdb'
 
 
 def execute(paths):
@@ -29,73 +31,71 @@ def execute(paths):
         Contains relevant paths for input and output files for the current
         prediction
     """
+    input_map = mrcfile.open(paths['input'])
+    origin = input_map.header.origin.item(0)
+    input_data = deepcopy(input_map.data)
+    input_data[input_data < get_threshold(paths)] = 0
 
-    copyfile(os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/blank.ent', paths['blank_ent'])
+    x_is, y_is, z_is = np.nonzero(input_data)
+    x_is, y_is, z_is = sorted(x_is), sorted(y_is), sorted(z_is)
 
-    chimera_script = open(paths['output'] + 'resample.cmd', 'w')
+    atoms = [
+        [x_is[0], 0, 0],
+        [x_is[-1], 0, 0],
+        [0, y_is[0], 0],
+        [0, y_is[-1], 0],
+        [0, 0, z_is[0]],
+        [0, 0, z_is[-1]]
+    ]
 
-    if 'hidedusts_file' in paths:
+    with open(paths['bounding_box'], 'w') as fp:
+        n = 0
+        for atom in atoms:
+            n += 1
+            fp.write('ATOM      1  CA  GLY A' + str(n).rjust(4) +
+                     '    ' + '{0:.3f}'.format(atom[2] + origin[0]).rjust(8) +
+                     '{0:.3f}'.format(atom[1] + origin[1]).rjust(8) +
+                     '{0:.3f}'.format(atom[0] + origin[2]).rjust(8) +
+                     '  1.00  0.00           C  \n')
+
+    chimera_run(paths, [
+        'open %s' % paths['input'],
+        'cofr models',
+        'cofr fixed',
+        'open %s' % paths['bounding_box'],
+        'mov cofr mod #1',
+        'write relative #0 #1 %s' % paths['bounding_box_centered'],
+        'close #1',
+        'open %s' % paths['bounding_box_centered'],
+        'molmap #1 6 gridSpacing 1',
+        'vop resample #0 onGrid #1.1',
+        'volume #2 save %s' % paths['cleaned_map'],
+        'volume #2 level %f' % get_threshold(paths),
+        'volume #2 step 1',
+        'sop hideDust #2 size 30',
+        'sop invertShown #2',
+        'mask #2 #2 invert true',
+        'volume #3 save %s' % paths['cleaned_map']
+    ])
+
+
+def chimera_run(paths, commands):
+    with open(paths['output'] + 'clean_map.cmd', 'w') as fp:
+        fp.write('\n'.join(commands))
+
+    subprocess.run(['/usr/local/bin/chimera', '--nogui', fp.name])
+    os.remove(fp.name)
+
+
+def get_threshold(paths):
+    if 'thresholds_file' in paths:
         emdb_id = paths['input'].split('/')[-2]
-        with open(paths['hidedusts_file']) as f:
-            hidedusts = json.load(f)
 
-    if 'hidedusts_file' in paths and emdb_id in hidedusts:
-        level, hidedust_size = hidedusts[emdb_id]
+        with open(paths['thresholds_file']) as f:
+            thresholds = json.load(f)
 
-        chimera_script.write('open ' + paths['input'] + '\n'
-                         'cofr models\n'
-                         'cofr fixed\n'
-                         'open ' + paths['blank_ent'] + '\n'                         
-                         'move cofr mod #1\n'
-                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
-                         'molmap #2 6 gridSpacing 1\n'                        
-                         'volume #0 level ' + str(level) + '\n'
-                         'sop hideDust #0 size ' + str(hidedust_size) + '\n'
-                         'sel #0\n'
-                         'mask sel #0\n'
-                         'vop resample #3 onGrid #2.1\n'
-                         'volume #4 save ' + paths['cleaned_map'])
-    else:
-        chimera_script.write('open ' + paths['input'] + '\n'
-                         'cofr models\n'
-                         'cofr fixed\n'
-                         'open ' + paths['blank_ent'] + '\n'                         
-                         'move cofr mod #1\n'
-                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
-                         'molmap #2 6 gridSpacing 1\n'                        
-                         'sel #0\n'
-                         'vop resample sel onGrid #2.1\n'
-                         'volume #3 save ' + paths['cleaned_map'])
-                     
-    chimera_script.close()
+        if emdb_id in thresholds:
+            return thresholds[emdb_id]
 
-    script_finished = False
-    while not script_finished:
-        try:
-            subprocess.run(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
-            script_finished = True
-        except FileNotFoundError as error:
-            if not create_symbolic_link():
-                raise error
-
-    os.remove(chimera_script.name)
-
-
-def create_symbolic_link():
-    """Creates symbolic link to chimera bin in /usr/local/bin if user wants to
-
-    Returns
-    -------
-    link_created: bool
-        Indicates whether or not the symbolic link was created
-    """
-    print('It looks like there is no link to chimera in /usr/local/bin')
-    if input('Do you want to create one? (y/n) ') in ['y', 'yes']:
-        chimera_bin = input('Enter path to chimera bin file: ')
-        subprocess.run(['ln', '-s', chimera_bin, '/usr/local/bin/chimera'])
-
-        return True
-    else:
-        return False
+    with open(paths['threshold']) as f:
+        return float(f.readline())

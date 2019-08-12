@@ -25,7 +25,7 @@ def execute(paths):
     """Coordinates the application of the helix refinement and writes new pdb
     file containing refined backbone structure"""
     reader_writer = PDB_Reader_Writer()
-    chains = reader_writer.read_pdb(paths['traces'])
+    chains = reader_writer.read_pdb(paths['traces_merged'])
     fit_helices(chains)
     reader_writer.write_pdb(chains, paths['traces_refined'])
 

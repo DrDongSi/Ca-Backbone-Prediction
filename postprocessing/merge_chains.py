@@ -3,14 +3,16 @@ from .pdb_reader_writer import PDB_Reader_Writer, Chain
 
 
 def update_paths(paths):
-    paths['fragments_merged'] = paths['output'] + 'fragments_merged.pdb'
+    paths['traces_merged'] = paths['output'] + 'traces_merged.pdb'
 
 
 def execute(paths):
     reader_writer = PDB_Reader_Writer()
-    chains = [c for c in reader_writer.read_pdb(paths['traces_refined']) if len(c.nodes) > 0]
+    chains = [c for c in reader_writer.read_pdb(paths['traces']) if len(c.nodes) > 0]
     while merge_closest_chains(chains):
         pass
+
+    chains = [c for c in chains if len(c.nodes) > 5]
 
     reader_writer.write_pdb(chains, paths['fragments_merged'])
 
