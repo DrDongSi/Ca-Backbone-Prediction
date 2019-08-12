@@ -113,17 +113,23 @@ def run_prediction(params):
 
             return None
 
+    if not os.path.isfile(paths['traces_refined']):
+        return None
+
     if 'traces_refined' in paths:
         copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
 
     if debug is False:
-        os.remove(paths['cleaned_map'])
-        os.remove(paths['normalized_map'])
-        os.remove(paths['loops_confidence'])
-        os.remove(paths['sheet_confidence'])
-        os.remove(paths['helix_confidence'])
-        os.remove(paths['backbone_confidence'])
-        os.remove(paths['ca_confidence'])
+        try:
+            os.remove(paths['cleaned_map'])
+            os.remove(paths['normalized_map'])
+            os.remove(paths['loops_confidence'])
+            os.remove(paths['sheet_confidence'])
+            os.remove(paths['helix_confidence'])
+            os.remove(paths['backbone_confidence'])
+            os.remove(paths['ca_confidence'])
+        except:
+            pass
 
     return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
 
