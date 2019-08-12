@@ -43,6 +43,7 @@ def fit_helices(chains):
         i = 0
         while i < len(chain.helices):
             helix_start, helix_end = chain.helices[i]
+            helix_end = helix_end + 1
             original_len = len(chain.nodes)
             # Don't fit helices that consist of less than 10 atoms
             if helix_end - helix_start < 10:
