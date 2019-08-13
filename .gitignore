@@ -122,3 +122,5 @@ dmypy.json
 
 # Visual Studios
 .vs/
+*.pyproj
+*.sln

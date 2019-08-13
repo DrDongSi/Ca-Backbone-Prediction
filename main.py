@@ -1,5 +1,6 @@
 import argparse
 from prediction.prediction import run_predictions
+from gui.gui import run_gui
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ca Backbone Prediction from High Resolution CryoEM Data')
@@ -15,10 +16,15 @@ if __name__ == '__main__':
                         help='JSON file which contains the hide dust sizes')
     parser.add_argument('-b', '--debug', action='store_const', const=True, default=False,
                         help='Enter debug mode, where mrc files are kept, otherwise mrc files are deleted at end to save memory')
+    parser.add_argument('--nogui', action='store_const', const=True, default=False,
+                        help='Run without GUI interface')
 
     args = parser.parse_args()
 
     args.input += '/' if args.input[-1] != '/' else ''
     args.output += '/' if args.output[-1] != '/' else ''
 
-    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing, args.hidedusts, args.debug)
+    if args.nogui:
+        run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing, args.hidedusts, args.debug)
+    else:
+        run_gui()
