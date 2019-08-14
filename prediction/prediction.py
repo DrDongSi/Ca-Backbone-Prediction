@@ -17,9 +17,9 @@ import postprocessing as post
 
 # List contains every prediction step that is executed in order to produce
 # the final prediction
-PREDICTION_PIPELINE = [
-    pre.find_threshold,
+PREDICTION_PIPELINE = [   
     pre.clean_map,
+    pre.find_threshold,
     pre.normalize_map,
     cnn.predict_with_module,
     post.build_backbone_trace,
