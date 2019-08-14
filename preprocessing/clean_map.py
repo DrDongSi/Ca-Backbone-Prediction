@@ -35,7 +35,6 @@ def execute(paths):
 
     input_map = mrcfile.open(paths['input'])
     input_data = deepcopy(input_map.data)
-    input_data[input_data < get_threshold(paths)] = 0
 
     x_is, y_is, z_is = np.nonzero(input_data)
     x_is, y_is, z_is = sorted(x_is), sorted(y_is), sorted(z_is)
@@ -78,7 +77,7 @@ def execute(paths):
                          'open ' + paths['bounding_box'] + '\n'                         
                          'move cofr mod #1\n'
                          'write relative #0 #1 ' + paths['bounding_box_centered'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
+                         'open ' + paths['bounding_box_centered'] + '\n'
                          'molmap #2 6 gridSpacing 1\n'                        
                          'volume #0 level ' + str(level) + '\n'
                          'sop hideDust #0 size ' + str(hidedust_size) + '\n'
@@ -93,7 +92,7 @@ def execute(paths):
                          'open ' + paths['bounding_box'] + '\n'                         
                          'move cofr mod #1\n'
                          'write relative #0 #1 ' + paths['bounding_box_centered'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
+                         'open ' + paths['bounding_box_centered'] + '\n'
                          'molmap #2 6 gridSpacing 1\n'                        
                          'sel #0\n'
                          'vop resample sel onGrid #2.1\n'
