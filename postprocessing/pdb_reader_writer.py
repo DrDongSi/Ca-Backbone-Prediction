@@ -130,11 +130,11 @@ class Hybrid36:
         i -= 10**width
         if (i < 26*36**(width-1)):
           i += 10*36**(width-1)
-          return __encode_pure(digits_upper, i)
+          return Hybrid36.__encode_pure(digits_upper, i)
         i -= 26*36**(width-1)
         if (i < 26*36**(width-1)):
           i += 10*36**(width-1)
-          return __encode_pure(digits_lower, i)
+          return Hybrid36.__encode_pure(digits_lower, i)
       raise ValueError("value out of range.")
 
     def hy36decode(width, s):
@@ -146,11 +146,11 @@ class Hybrid36:
           except ValueError: pass
           if (s == " "*width): return 0
         elif (f in digits_upper_values):
-          try: return __decode_pure(
+          try: return Hybrid36.__decode_pure(
             digits_values=digits_upper_values, s=s) - 10*36**(width-1) + 10**width
           except KeyError: pass
         elif (f in digits_lower_values):
-          try: return __decode_pure(
+          try: return Hybrid36.__decode_pure(
             digits_values=digits_lower_values, s=s) + 16*36**(width-1) + 10**width
           except KeyError: pass
       raise ValueError("invalid number literal.")
