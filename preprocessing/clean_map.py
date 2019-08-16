@@ -63,7 +63,7 @@ def execute(paths):
                          'open ' + paths['bounding_box'] + '\n'                         
                          'move cofr mod #1\n'
                          'write relative #0 #1 ' + paths['bounding_box_centered'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
+                         'open ' + paths['bounding_box_centered'] + '\n'
                          'molmap #2 6 gridSpacing 1\n'                        
                          'sel #0\n'
                          'vop resample sel onGrid #2.1\n'
