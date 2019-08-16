@@ -16,8 +16,8 @@ import json
 
 def update_paths(paths):
     paths['cleaned_map'] = paths['output'] + 'cleaned_map.mrc'
-    paths['blank_ent'] = paths['output'] + 'blank.ent'
-    paths['blank_centered_ent'] = paths['output'] + 'blank_centered.ent'
+    paths['bounding_box'] = paths['output'] + 'bounding_box.ent'
+    paths['bounding_box_centered'] = paths['output'] + 'bounding_box_centered.ent'
 
 
 def execute(paths):
@@ -30,7 +30,7 @@ def execute(paths):
         prediction
     """
 
-    copyfile(os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/blank.ent', paths['blank_ent'])
+    copyfile(os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/bounding_box.ent', paths['bounding_box'])
 
     chimera_script = open(paths['output'] + 'resample.cmd', 'w')
 
@@ -45,10 +45,10 @@ def execute(paths):
         chimera_script.write('open ' + paths['input'] + '\n'
                          'cofr models\n'
                          'cofr fixed\n'
-                         'open ' + paths['blank_ent'] + '\n'                         
+                         'open ' + paths['bounding_box'] + '\n'                         
                          'move cofr mod #1\n'
-                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
-                         'open ' + paths['blank_centered_ent'] + '\n'
+                         'write relative #0 #1 ' + paths['bounding_box_centered'] + '\n'
+                         'open ' + paths['bounding_box_centered'] + '\n'
                          'molmap #2 6 gridSpacing 1\n'                        
                          'volume #0 level ' + str(level) + '\n'
                          'sop hideDust #0 size ' + str(hidedust_size) + '\n'
@@ -60,9 +60,9 @@ def execute(paths):
         chimera_script.write('open ' + paths['input'] + '\n'
                          'cofr models\n'
                          'cofr fixed\n'
-                         'open ' + paths['blank_ent'] + '\n'                         
+                         'open ' + paths['bounding_box'] + '\n'                         
                          'move cofr mod #1\n'
-                         'write relative #0 #1 ' + paths['blank_centered_ent'] + '\n'
+                         'write relative #0 #1 ' + paths['bounding_box_centered'] + '\n'
                          'open ' + paths['blank_centered_ent'] + '\n'
                          'molmap #2 6 gridSpacing 1\n'                        
                          'sel #0\n'
