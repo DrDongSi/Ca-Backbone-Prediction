@@ -261,7 +261,7 @@ class PDB_Reader_Writer:
     @staticmethod
     def __parse_nodes_index(line):
         """Parse node's index from given 'line'"""
-        return int(line[22:26])
+        return int(Hybrid36.hy36decode(4, line[22:26]))
 
 
     @staticmethod
