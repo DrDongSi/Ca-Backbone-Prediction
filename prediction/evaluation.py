@@ -1,6 +1,7 @@
 import math
 import xlwt
 from datetime import timedelta
+from postprocessing import pdb_reader_writer
 
 
 class Evaluator:
@@ -31,7 +32,7 @@ class Evaluator:
         for line in prediction_file:
             if line.startswith("ATOM") and line[13:16] == "CA ":
                 modeled_ca += 1
-                index = int(line[23:26])
+                index = pdb_reader_writer.PDB_Reader_Writer.read_single_pdb_line(type='ATOM INDEX', line=line)
                 x = float(line[30:38])
                 y = float(line[38:46])
                 z = float(line[46:54])
