@@ -208,7 +208,7 @@ class Helix:
 
         self._set_nodes(shift=res[0].x[0], rotation=res[0].x[1])
         if 0.8 < get_avg_offset(nodes, self.nodes) <= 1.7:
-            self._set_edges(nodes)
+            self._set_edge_nodes(nodes)
         else:
             self.nodes = nodes
 
@@ -271,10 +271,16 @@ class Helix:
             self.nodes.append(np.add(self.screw_axis(t), rotated_vector))
             t += self.gap
 
-    def _set_edges(self, original_nodes):
+    def _set_edge_nodes(self, original_nodes):
         """Sets the edge nodes which were ignored due to the min interval size"""
         edge_length = int(self.min_interval_size / 2 - 0.1)
 
+        # Remove edge nodes if too close to other nodes
+        if edge_length > 0:
+            if get_distance(original_nodes[edge_length - 1], self.nodes[0]) < 3:
+                self.nodes = self.nodes[1:]
+            if get_distance(original_nodes[-edge_length], self.nodes[-1]) < 3:
+                self.nodes = self.nodes[:-1]
         self.nodes = original_nodes[:edge_length] + self.nodes + original_nodes[-edge_length:]
 
 
