@@ -756,15 +756,14 @@ class Graph:
 
         for index, trace in enumerate(helix_traces):
             chain = helix_chains[index]
-            start = str(helix_traces[index][0] + chain)
-            end = str(helix_traces[index][len(helix_traces[index]) - 1] + chain)
-            length = str(len(helix_traces[index]))
+            start = str(helix_traces[index][0] + chain - 1)
+            end = str(helix_traces[index][len(helix_traces[index]) - 1] + chain - 1)
             PDB_Reader_Writer.write_single_pdb(file=writer, type='HELIX', chain='A', node_from=start, node_to=end)
 
         for index, trace in enumerate(sheet_traces):
             chain = sheet_chains[index]
-            start = str(sheet_traces[index][0] + chain)
-            end = str(sheet_traces[index][len(sheet_traces[index]) - 1] + chain)
+            start = str(sheet_traces[index][0] + chain - 1)
+            end = str(sheet_traces[index][len(sheet_traces[index]) - 1] + chain - 1)
             PDB_Reader_Writer.write_single_pdb(file=writer, type='SHEET', chain='A', node_from=start, node_to=end)
 
         writer.close()
