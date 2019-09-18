@@ -1,5 +1,5 @@
 import numpy as np
-from .pdb_reader_writer import PDB_Reader_Writer, Chain
+from .pdb_reader_writer import PDB_Reader_Writer
 
 
 def update_paths(paths):
@@ -8,7 +8,7 @@ def update_paths(paths):
 
 def execute(paths):
     reader_writer = PDB_Reader_Writer()
-    chains = [c for c in reader_writer.read_pdb(paths['traces_refined']) if len(c.nodes) > 0]
+    chains = [c for c in reader_writer.read_pdb(paths['duplicates_removed']) if len(c.nodes) > 0]
     while merge_closest_chains(chains):
         pass
 

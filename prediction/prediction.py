@@ -24,6 +24,7 @@ PREDICTION_PIPELINE = [
     cnn.predict_with_module,
     post.build_backbone_trace,
     post.helix_refinement,
+    post.remove_duplicates,
     post.merge_chains
 ]
 
@@ -113,11 +114,11 @@ def run_prediction(params):
 
             return None
 
-    if not os.path.isfile(paths['traces_refined']):
+    if not os.path.isfile(paths['fragments_merged']):
         return None
 
-    if 'traces_refined' in paths:
-        copyfile(paths['traces_refined'], output_path + emdb_id + '/' + emdb_id + '.pdb')
+    if 'fragments_merged' in paths:
+        copyfile(paths['fragments_merged'], output_path + emdb_id + '/' + emdb_id + '.pdb')
 
     if debug is False:
         try:
@@ -131,7 +132,7 @@ def run_prediction(params):
         except:
             pass
 
-    return emdb_id, paths['traces_refined'], paths['ground_truth'], time() - start_time
+    return emdb_id, paths['fragments_merged'], paths['ground_truth'], time() - start_time
 
 
 def make_paths(input_path, emdb_id, thresholds_file, hidedusts_file):
