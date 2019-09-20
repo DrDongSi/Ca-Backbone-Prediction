@@ -200,9 +200,9 @@ class Helix:
 
         # Find best shift and rotation parameters
         # noinspection PyTypeChecker
-        res = [minimize(evaluate_params, [-self.gap, -2 * pi]),
-               minimize(evaluate_params, [0, 0]),
-               minimize(evaluate_params, [self.gap, 2 * pi])]
+        res = [minimize(evaluate_params, [-self.gap, -2 * pi], bounds=[(-self.gap, self.gap), (None, None)]),
+               minimize(evaluate_params, [0, 0], bounds=[(-self.gap, self.gap), (None, None)]),
+               minimize(evaluate_params, [self.gap, 2 * pi], bounds=[(-self.gap, self.gap), (None, None)])]
 
         res.sort(key=lambda params: evaluate_params(params.x))
 
