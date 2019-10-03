@@ -54,24 +54,6 @@ class Evaluator:
                 if min_dist > 3:
                     incorrect += 1
 
-        # Calculate false-positive rate
-        num_fp = 0
-        for partial_set in pred_ca_atoms:
-            for pred_ca in partial_set:
-                is_fp = True
-                for gt_ca in gt_ca_atoms:
-                    if distance(pred_ca[2], gt_ca[2], pred_ca[1], gt_ca[1], pred_ca[0], gt_ca[0]) <= 3:
-                        is_fp = False
-                        break
-
-                if is_fp:
-                    num_fp += 1
-
-        if len(pred_ca_atoms) > 0:
-            fp_per = num_fp / len(pred_ca_atoms)
-        else:
-            fp_per = -1
-
         total_ca = 0
         squared_sum = 0
         for partial_set in pred_ca_atoms:
@@ -138,7 +120,7 @@ class Evaluator:
                                                         math.sqrt(squared_sum / total_ca) if total_ca != 0 else 0,
                                                         incorrect,
                                                         execution_time,
-                                                        fp_per))
+                                                        incorrect / modeled_ca))
 
     def create_report(self, output_path, execution_time):
         """Creates excel document containing evaluation reports"""
