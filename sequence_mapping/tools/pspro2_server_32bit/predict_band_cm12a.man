@@ -1,0 +1,38 @@
+#!/bin/sh
+#predict the band contacts for 12A
+
+#param1: input_seq_file
+#param2: alignment file
+#param3: end_band
+
+if [ $# -lt 3 ]
+then
+	echo "need input_seqence file, alignment file, end_band."
+	exit 1
+fi
+
+#parameters to the predictor
+#param1: model definition file (See model.def or more details)
+#param2: dataset(usually 11-line format, just one sequence)
+#param3: alignment file
+#param4: known input band
+if [ $3 -eq 10 ]
+then
+    /home/jcheng/pspro/server/predict_band_cm /home/jcheng/pspro/model/band/cm12a_4_10.model $1 $2 3
+fi
+if [ $3 -eq 20 ]
+then
+    /home/jcheng/pspro/server/predict_band_cm /home/jcheng/pspro/model/band/cm12a_11_20.model $1 $2 10 
+fi
+if [ $3 -eq 50 ]
+then
+    /home/jcheng/pspro/server/predict_band_cm /home/jcheng/pspro/model/band/cm12a_21_50.model $1 $2 20 
+fi
+if [ $3 -eq 100 ]
+then
+    /home/jcheng/pspro/server/predict_band_cm /home/jcheng/pspro/model/band/cm12a_51_100.model $1 $2 50 
+fi
+if [ $3 -eq 150 ]
+then
+    /home/jcheng/pspro/server/predict_band_cm /home/jcheng/pspro/model/band/cm12a_101_150.model $1 $2 100 
+fi
