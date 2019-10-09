@@ -4,7 +4,7 @@
 our %AA3TO1 = qw(ALA A ASN N CYS C GLN Q HIS H LEU L MET M PRO P THR T TYR Y ARG R ASP D GLU E GLY G ILE I LYS K PHE F SER S TRP W VAL V);
 our %AA1TO3 = reverse %AA3TO1;
 
-$installation_dir = '/home/jh7x3/CaTrace2Seq/';
+$installation_dir = '/home/jh7x3/Ca-Backbone-Prediction/sequence_mapping/';
 use List::Util qw(shuffle);
 
 if (@ARGV != 4)

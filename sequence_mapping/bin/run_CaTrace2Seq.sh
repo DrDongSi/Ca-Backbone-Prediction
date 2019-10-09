@@ -28,7 +28,7 @@ cpu_num=$5
 
 printf "perl /scripts/CaTrace2Seq.pl $Ca_trace_file $fasta_file $outputdir $threshold $cpu_num\n\n"
 
-perl /home/jh7x3/CaTrace2Seq/scripts/CaTrace2Seq.pl $Ca_trace_file $fasta_file $outputdir $threshold $cpu_num
+perl /home/jh7x3/Ca-Backbone-Prediction/sequence_mapping/scripts/CaTrace2Seq.pl $Ca_trace_file $fasta_file $outputdir $threshold $cpu_num
 
 
 

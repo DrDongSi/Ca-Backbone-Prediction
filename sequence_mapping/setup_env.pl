@@ -97,8 +97,8 @@ system("chmod +x $install_dir/examples/*.sh");
 print("\n#### (2) Download basic tools\n\n");
 
 chdir($tools_dir);
-#$basic_tools_list = "TMscore.tar.gz;qprob_package.tar.gz;R-3.2.0";
-$basic_tools_list = "TMscore.tar.gz;R-3.2.0.tar.gz";
+$basic_tools_list = "TMscore.tar.gz;qprob_package.tar.gz;R-3.2.0.tar.gz";
+#$basic_tools_list = "TMscore.tar.gz;R-3.2.0.tar.gz";
 @basic_tools = split(';',$basic_tools_list);
 foreach $tool (@basic_tools)
 {
