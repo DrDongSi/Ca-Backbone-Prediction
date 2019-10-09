@@ -7,8 +7,6 @@ The code which maps protein sequences into the predicted Cα traces can be found
 ## Cα Backbone Prediction from Cryo-EM
 Deep Learning for Cα Backbone Prediction from High Resolution CryoEM Data
 
-<img src="https://i.ibb.co/pQbMPrW/sample-prediction.png" alt="sample-prediction" border="0">
-
 ## Installing Required Packages
 In order to run the backbone prediction we need to install all required Python packages (Python version of 3.5 or higher is required). This can be done by creating a virtual environment with `python3 -m venv env` and activating it with `source ./env/bin/activate`. Once the virtual Python environment is activated, the required packages can be installed with pip using `pip install -r requirements.txt`.
 
@@ -39,19 +37,19 @@ An example command to execute the prediction could therefore be the following.
 `python main.py INPUT_PATH OUTPUT_PATH -t THRESHOLD_FILE`
 
 ### Sample Execution
-A sample execution of the prediction will be demonstrated for the [5778 protein density map](https://www.emdataresource.org/EMD-5778) shown in the following image.
+A sample execution of the prediction will be demonstrated for the [6272 protein density map](https://www.emdataresource.org/EMD-6272) shown in the following image.
 
-<img src="https://i.ibb.co/XtbqC9z/density-map.png" alt="density-map" border="0">
+<img src="https://i.ibb.co/N7rS1Pn/6272mrc.png" alt="6272mrc" border="0">
 
 The program will require the map as well as the fitted PDB as an input. Both files need to be stored in the same folder which is ideally named after the EMDB id. We also need to create a folder where the results will be stored. The folder structure could then look as following.
 
-<img src="https://i.ibb.co/V9f3tJ4/folder-structure.png" alt="folder-structure" border="0">
+<img src="https://i.ibb.co/mzRg1XT/folder-structure.png" alt="folder-structure" border="0">
 
 Furthermore, we want to provide a file containing the threshold value that should be used for the protein map. Therefore, we create a `thresholds.json` file with the following content:
 
 ```
 {
-	"5778": 4.50
+	"6272": 0.009
 }
 ```
 
@@ -65,7 +63,7 @@ Also, an option to apply hide dust sizes can be provided in a `hidedusts.json` f
 
 ```
 {
-  "5778": [1.0, 10.0]
+  "6272": [1.0, 10.0]
 }
 ``` 
 
@@ -81,12 +79,10 @@ During the execution all prediction steps are run and the artifacts created by e
 
 After the execution finished the folder structure should look as following.
 
-<img src="https://i.ibb.co/nfRRgjH/folder-structure2.png" alt="folder-structure2" border="0">
+<img src="https://i.ibb.co/XVKX1q7/folder-structure2.png" alt="folder-structure2" border="0">
 
-The final prediction is stored in the **5778.pdb** file. The created backbone trace is shown in the following image.
+The final prediction is stored in the **6272.pdb** file. The created backbone trace is shown in the following image.
 
-<img src="https://i.ibb.co/hsq9VW5/prediction.png" alt="prediction" border="0">
+<img src="https://i.ibb.co/nbnbtkQ/6272pdb.png" alt="6272pdb" border="0">
 
-Additionally, a **results.xls** file is created in the output folder containing metrics about the prediction results. In the case of the 5778 protein map this could e.g. look like this.
-
-<img src="https://i.ibb.co/37HCVtm/results.png" alt="results" border="0">
+Additionally, a **results.xls** file is created in the output folder containing metrics about the prediction results.
