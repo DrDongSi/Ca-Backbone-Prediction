@@ -179,6 +179,8 @@ if($frag_num == 1)
   
 	@content_tmp3 = split('_',substr($best_model,0,index($best_model,'.pdb')));
 	$start_pos = $content_tmp3[@content_tmp3-1]+1;
+	
+	$frag_len = $frag_CAs{$frag_num};
 	$end_pos =  $start_pos +  $frag_len -1;
 
 
@@ -194,7 +196,7 @@ if($frag_num == 1)
   foreach $fragidx (sort { $frag_CAs{$b} <=> $frag_CAs{$a} } keys %frag_CAs) 
   {
     $frag_len = $frag_CAs{$fragidx};
-    if($frag_len<10)
+    if($frag_len<$len_threshold)
     {
       next;
     }
