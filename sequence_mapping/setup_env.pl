@@ -231,6 +231,20 @@ if(-d $tooldir)
 	}
 }
 
+### uncompress MTMG
+
+
+if(!(-d "$CaTrace2Seq_db_tools_dir/MTMG/"))
+{
+	if(-e "$CaTrace2Seq_db_tools_dir/MTMG.tar.gz")
+	{
+		chdir("$CaTrace2Seq_db_tools_dir");
+		`tar -zxf MTMG.tar.gz`;
+	}else{
+		die "Failed to find MTMG source codes for installation, contact us!\n";
+	}
+}
+
 $addr_scwrl4 = $CaTrace2Seq_db_tools_dir."/MTMG/";
 if(-d $addr_scwrl4)
 {
