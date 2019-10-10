@@ -100,6 +100,9 @@ foreach (@lines_PDB) {
   $CA_num ++;
   
 }
+$idx = $frag_num-1;
+$frag_CAs{$idx} = $CA_num;
+print "Fragement $idx has $CA_num atoms\n";
 close TMP;
 
 
@@ -180,7 +183,7 @@ if($frag_num == 1)
 	@content_tmp3 = split('_',substr($best_model,0,index($best_model,'.pdb')));
 	$start_pos = $content_tmp3[@content_tmp3-1]+1;
 	
-	$frag_len = $frag_CAs{$frag_num};
+	$frag_len = $frag_CAs{$frag_num-1};
 	$end_pos =  $start_pos +  $frag_len -1;
 
 
