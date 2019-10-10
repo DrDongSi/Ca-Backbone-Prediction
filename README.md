@@ -103,6 +103,9 @@ cd sequence_mapping
 
 perl setup_env.pl
 
+(Note: since we use quality assessment tool with non-redundent sequence database, the tool requires around 33G)
+
+
 ```
 
 **(2) Run CaTrace2Seq (required)**
