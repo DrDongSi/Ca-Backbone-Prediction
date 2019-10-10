@@ -86,35 +86,22 @@ Additionally, a **results.xls** file is created in the output folder containing 
 
 
 
-## Sequence Mapping
-The code which maps protein sequences into the predicted Cα traces can be found [here](https://github.com/DrJieHou/CaTrace2Seq/).
+## Sequence Mapping (Updating)
+The code which maps protein sequences into the predicted Cα traces can be found [here](https://github.com/DrJieHou/CaTrace2Seq/). We put the paper's version in the the folder 'sequence_mapping', users can directly setup program in this folder. The latest version can be found at [here](https://github.com/DrJieHou/CaTrace2Seq/).
 
-
-
-# CaTrace2Seq
-The program of mapping protein sequences into protein Ca trace drives from cryoEM image data
-
-
-**(1) Download CaTrace2Seq package (short path is recommended)**
+**(1) Configure CaTrace2Seq (required)**
 
 ```
-git clone https://github.com/DrJieHou/CaTrace2Seq.git
+cd sequence_mapping
 
-cd CaTrace2Seq
-```
-
-
-**(2) Configure CaTrace2Seq (required)**
-
-```
 perl setup_env.pl
 
 ```
 
-**(3) Run CaTrace2Seq (required)**
+**(2) Run CaTrace2Seq (required)**
 
 ```
-sh run_CaTrace2Seq.sh  <path of fasta sequence> <path of Ca trace> <length threshold for fragment> <output-directory> <num of cpus>
+sh bin/run_CaTrace2Seq.sh  <path of fasta sequence> <path of Ca trace> <length threshold for fragment> <output-directory> <num of cpus>
 ```
 
 **(4) Practice the examples** 
@@ -123,7 +110,6 @@ sh run_CaTrace2Seq.sh  <path of fasta sequence> <path of Ca trace> <length thres
 cd example
 
 sh run_6272.sh
-
 
 
  *****************************************************************************
