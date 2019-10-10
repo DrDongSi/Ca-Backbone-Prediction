@@ -117,10 +117,10 @@ sh P1_install_R-3.2.0.sh
 sh bin/run_CaTrace2Seq.sh  <path of fasta sequence> <path of Ca trace> <length threshold for fragment> <output-directory> <num of cpus>
 ```
 
-**(4) Practice the examples** 
+**(4) Practice the examples using fragment traces from experimental density maps** 
 
 ```
-cd example
+cd examples
 
 sh run_6272.sh
 
@@ -153,3 +153,19 @@ GDT-HA-score= 0.6039 %(d<0.5)=0.1814 %(d<1)=0.5819 %(d<2)=0.7431 %(d<4)=0.9093
  
 ```
 
+
+**(5) Practice the examples using fragment traces from simulated density maps** 
+
+```
+cd examples
+
+sh run_2GZ4.sh
+sh run_3EWG.sh
+sh run_3n2t.sh
+sh run_3qc7.sh
+sh run_3RMU.sh
+sh run_4RAJ.sh
+sh run_5EBA.sh
+sh run_5i68.sh
+sh run_5P9V.sh
+sh run_6ahv.sh
