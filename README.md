@@ -107,6 +107,8 @@ perl setup_env.pl
 
 cd installation/
 sh P1_install_R-3.2.0.sh  
+
+(Note: check R installation:  sequence_mapping/tools/R-3.2.0/bin/R )
 ```
 
 **(2) Run CaTrace2Seq (required)**
