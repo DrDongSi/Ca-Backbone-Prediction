@@ -89,6 +89,13 @@ Additionally, a **results.xls** file is created in the output folder containing 
 ## Sequence Mapping (Updating)
 The code which maps protein sequences into the predicted Cα traces can be found [here](https://github.com/DrJieHou/CaTrace2Seq/). We put the paper's version in the the folder 'sequence_mapping', users can directly setup program in this folder. The latest version can be found at [here](https://github.com/DrJieHou/CaTrace2Seq/).
 
+Test Environment
+--------------------------------------------------------------------------------------
+Red Hat Enterprise Linux Server release 6.4 (Santiago), perl 5, version 16, subversion 3 (v5.16.3)
+
+Installation Steps
+--------------------------------------------------------------------------------------
+
 **(1) Configure CaTrace2Seq (required)**
 
 ```
