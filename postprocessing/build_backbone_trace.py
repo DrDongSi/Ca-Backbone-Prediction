@@ -190,18 +190,18 @@ def zero_out_sphere(remaining_image, location, level):
         for y in range(-sphere_radius + location[1], sphere_radius + location[1]):
             for z in range(-sphere_radius + location[2], sphere_radius + location[2]):
                 if (0 <= x < box_size[0] and 0 <= y < box_size[1] and 0 <= z < box_size[2] and
-                        distance(location[2], z, location[1], y, location[0], x) < sphere_radius):
+                        distance(location, (x, y,z)) < sphere_radius ** 2):
                     if level == 2 or not (x == location[0] and y == location[1] and z == location[2]):
                         remaining_image[x][y][z] = 0
 
 
-def distance(z1, z2, y1, y2, x1, x2):
+def distance(x, y):
     """Calculates Euclidean distance between two points"""
-    z_diff = z1 - z2
-    y_diff = y1 - y2
-    x_diff = x1 - x2
-    sum_squares = math.pow(z_diff, 2) + math.pow(y_diff, 2) + math.pow(x_diff, 2)
-    return math.sqrt(sum_squares)
+    x = np.array(x)
+    y = np.array(y)
+    delta = x - y
+    d2 = (delta * delta).sum()
+    return d2 ** 0.5
 
 
 def find_nearest_ca(previous_location, backbone_image, set_of_ca_sets, untouched_prediction):
@@ -228,8 +228,7 @@ def find_nearest_ca(previous_location, backbone_image, set_of_ca_sets, untouched
         for y in range(-sphere_radius + previous_location[1], sphere_radius + previous_location[1]):
             for z in range(-sphere_radius + previous_location[2], sphere_radius + previous_location[2]):
                 if (0 <= x < box_size[0] and 0 <= y < box_size[1] and 0 <= z < box_size[2] and
-                        max_ca_distance >= distance(z, previous_location[2], y, previous_location[1], x,
-                                                    previous_location[0]) >= min_ca_distance and
+                        max_ca_distance >= distance(previous_location, np.array((x, y, z))) >= min_ca_distance and
                         not already_placed([x, y, z], invalid_ca_spots) and untouched_prediction[x][y][z] > 0):
                     possible_set.append([x, y, z])
     if len(possible_set) == 0:
@@ -238,7 +237,7 @@ def find_nearest_ca(previous_location, backbone_image, set_of_ca_sets, untouched
 
     dictionary = {}
     for coordinate in possible_set:
-        voids, density = cylindrical_density(coordinate, previous_location, backbone_image, untouched_prediction)
+        voids, density = cylindrical_density_fast(coordinate, previous_location, backbone_image, untouched_prediction)
         angle = find_angle2(set_of_ca_sets, previous_location, coordinate)
         score = density
         if (bfs_distance_image[coordinate[0], coordinate[1], coordinate[2]] < 100) and angle > 70:
@@ -291,7 +290,7 @@ def already_placed(location, invalid_ca_spots):
     prediction image"""
     sphere_radius = 3
     for ca in invalid_ca_spots:
-        if distance(location[2], ca[2], location[1], ca[1], location[0], ca[0]) < sphere_radius:
+        if distance(location, ca) < sphere_radius:
             return True
     return False
 
@@ -345,19 +344,58 @@ def cylindrical_density(ca_1, ca_2, input_image, untouched_prediction):
     z_step = (ca_2[2] - ca_1[2]) / steps
     for index in range(steps + 1):
         midpoints.append([ca_1[0] + x_step * index, ca_1[1] + y_step * index, ca_1[2] + z_step * index])
-    for z in range(int(ca_1[2]) - 4, int(ca_1[2]) + 4):  # 4 is kinda arbitrary here
-        for y in range(int(ca_1[1]) - 4, int(ca_1[1]) + 4):
-            for x in range(int(ca_1[0]) - 4, int(ca_1[0]) + 4):
+    for z in range(int(ca_1[2]) - 4, int(ca_1[2]) + 5):  # 4 is kinda arbitrary here
+        for y in range(int(ca_1[1]) - 4, int(ca_1[1]) + 5):
+            for x in range(int(ca_1[0]) - 4, int(ca_1[0]) + 5):
                 placed = False
                 for index in range(len(midpoints)):
                     if (0 <= z < box_size[2] and box_size[1] > y >= 0 <= x < box_size[0] and
-                            distance(z, midpoints[index][2], y, midpoints[index][1], x, midpoints[index][0]) <= 1
+                            distance(midpoints[index], (x, y, z)) < 1
                             and not placed):
                         placed = True
                         total_density += untouched_prediction[x][y][z]
                         number_of_points += 1
                         if input_image[x][y][z] <= 0:
                             number_of_voids += 1
+    return (number_of_voids * 15) / number_of_points, total_density / number_of_points
+
+
+def cylindrical_density_fast(ca_1, ca_2, input_image, untouched_prediction):
+    """Calculates the 1A-radius cylindrical density between two Ca atoms
+
+    This function returns two values. The first is the average number of voids
+    (zero valued voxels) within the cylinders. The second is the density of the
+    entire cylinder.
+    """
+    box_size = np.shape(input_image)
+    steps = 10
+    frac = np.arange(steps + 1).reshape(steps + 1, 1) / 10
+    midpoints = ca_1 * frac + ca_2 * (1 - frac)
+    midf = np.floor(midpoints).astype(np.int)
+    total_density = 0
+    number_of_voids = 0
+    number_of_points = 0
+    voxels = set()
+    for x in range(8):
+        offset = np.array([[x & 1, (x & 2) // 2, (x & 4) // 4]])
+        points = midf + offset
+        # print('offset', offset)
+        # print('points', points)
+        assert points.min() >= 0
+        assert (points.max() < np.array([box_size])).all()
+        deltas = midpoints - points
+        for point, delta in zip(points, deltas):
+            # print('XXX', point, delta, (delta ** 2).sum() < 1)
+            if (delta ** 2).sum() < 1:
+                voxels.add(tuple(point.tolist()))
+
+    voxel_list = np.array(list(voxels))
+
+    for x, y, z in voxel_list:
+        total_density += untouched_prediction[x, y, z]
+        number_of_points += 1
+        if input_image[x, y, z] <= 0:
+            number_of_voids += 1
 
     return (number_of_voids * 15) / number_of_points, total_density / number_of_points
 
@@ -417,7 +455,7 @@ def print_ca_sets(set_of_ca_sets, offset, file_name):
     counter = 0
     for index in range(len(set_of_ca_sets)):
         next_set = set_of_ca_sets[index]
-        counter += 1       
+        counter += 1
         for ca in range(len(next_set)):
             PDB_Reader_Writer.write_single_pdb(file=confidence_walk_pdb, type='ATOM', chain='A', node=np.array([(next_set[ca][2] + offset[0]),(next_set[ca][1] + offset[1]),(next_set[ca][0] + offset[2])]), seqnum=counter)
             counter += 1
@@ -440,8 +478,8 @@ def massage_ends(set_of_ca_sets):
         for next_ca_set in set_of_ca_sets:
             if next_ca_set != ca_set:
                 for ca in next_ca_set:
-                    start_dist = distance(ca[2], ca_start[2], ca[1], ca_start[1], ca[0], ca_start[0])
-                    end_dist = distance(ca[2], ca_end[2], ca[1], ca_end[1], ca[0], ca_end[0])
+                    start_dist = distance(ca, ca_start)
+                    end_dist = distance(ca, ca_end)
                     if start_dist < 3 and start_dist < switch_start_distance:
                         switch_start_ca = deepcopy(ca)
                         switch_start_distance = start_dist
@@ -460,7 +498,7 @@ def overlay_cas(set_of_ca_sets):
             for next_ca_set in set_of_ca_sets:
                 for next_index, next_ca in enumerate(next_ca_set):
                     if ca != next_ca:
-                        if distance(ca[2], next_ca[2], ca[1], next_ca[1], ca[0], next_ca[0]) < 3:
+                        if distance(ca, next_ca) < 3:
                             print('Before: ' + str(next_ca_set[next_index]))
                             next_ca_set[next_index] = ca_set[index]
                             print('After: ' + str(next_ca_set[next_index]))
@@ -799,9 +837,8 @@ class Graph:
                                 placed = False
                                 for index in range(len(midpoints)):
                                     if (box_size[2] > z >= 0 <= y < box_size[1] and 0 <= x < box_size[0] and
-                                        distance(z, midpoints[index][2], y, midpoints[index][1], x,
-                                                 midpoints[index][0]) <= 2
-                                        and not placed):
+                                        distance((x, y, z), midpoints[index]) <= 2
+                                            and not placed):
                                         placed = True
                                         new_backbone[x][y][z] = backbone_image[x][y][z]
         new_backbone = np.array(new_backbone, dtype=np.float32)
@@ -857,7 +894,7 @@ def calculate_density(walk_list, full_image, origin):
                     placed = False
                     for j in range(len(midpoints)):
                         if (box_size[2] > z >= 0 <= y < box_size[1] and 0 <= x < box_size[0] and
-                                    distance(z, midpoints[j][2], y, midpoints[j][1], x, midpoints[j][0]) <= 1
+                                    distance((x, y, z), midpoints[j]) <= 1
                             and not placed):
                             placed = True
                             total_density += full_image[x][y][z]
