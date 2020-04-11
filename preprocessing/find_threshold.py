@@ -93,7 +93,7 @@ def sav(threshold, paths):
                          'measure area #0\n')
     chimera_script.close()
 
-    output = subprocess.check_output(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
+    output = subprocess.check_output(['chimera', '--nogui', chimera_script.name])
     volume, surface_area = parse_sav(output)
 
     os.remove(chimera_script.name)

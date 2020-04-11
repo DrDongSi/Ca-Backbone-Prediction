@@ -1,10 +1,11 @@
 import argparse
+import os
 from prediction.prediction import run_predictions
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ca Backbone Prediction from High Resolution CryoEM Data')
-    parser.add_argument('input', type=str, help='Folder containing protein maps')
-    parser.add_argument('output', type=str, help='Folder where prediction results will be stored')
+    parser.add_argument('input', type=os.path.abspath, help='Folder containing protein maps')
+    parser.add_argument('output', type=os.path.abspath, help='Folder where prediction results will be stored')
     parser.add_argument('-t', '--thresholds', metavar='Thresholds', type=str,
                         help='JSON file which contains the thresholds')
     parser.add_argument('-s', '--skip', metavar='N', type=int, nargs=1, default=[0],
