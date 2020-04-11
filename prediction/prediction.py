@@ -60,8 +60,15 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
     start_time = time()
     max_processes_allowed_to_access_tensorflow = 4
     semaphore = Semaphore(min(min(cpu_count(), len(params_list)), max_processes_allowed_to_access_tensorflow))
+
     pool = Pool(min(cpu_count(), len(params_list)), initializer=init_child, initargs=(semaphore,))
     results = pool.map(run_prediction, params_list)
+
+    # for single-process debugging
+    # init_child(semaphore)
+    # results = []
+    # for params in params_list:
+    #     results.append(run_prediction(params))
 
     # Filter 'None' results
     results = filter(lambda r: r is not None, results)

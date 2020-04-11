@@ -25,7 +25,8 @@ __author__ = 'Jonas Pfab'
 
 
 def update_paths(paths):
-    paths['threshold'] = paths['output'] + 'threshold'
+    if not is_threshold_provided(paths):
+        paths['threshold'] = paths['output'] + 'threshold'
 
 
 def execute(paths):
