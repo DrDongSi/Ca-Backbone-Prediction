@@ -1,5 +1,5 @@
 ## Citation
-Paper citation with more information: Si, D., Moritz, S.A., Pfab, J. et al. Deep Learning to Predict Protein Backbone Structure from High-Resolution Cryo-EM Density Maps. Sci Rep 10, 4282 (2020). https://rdcu.be/b3n4h.
+Paper citation with more information: Si, D., Moritz, S.A., Pfab, J. et al. Deep Learning to Predict Protein Backbone Structure from High-Resolution Cryo-EM Density Maps. Sci Rep 10, 4282 (2020). https://www.nature.com/articles/s41598-020-60598-y.
 
 ## Cα Backbone Prediction from Cryo-EM
 Deep Learning for Cα Backbone Prediction from High Resolution CryoEM Data
