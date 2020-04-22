@@ -25,7 +25,8 @@ __author__ = 'Jonas Pfab'
 
 
 def update_paths(paths):
-    paths['threshold'] = paths['output'] + 'threshold'
+    if not is_threshold_provided(paths):
+        paths['threshold'] = paths['output'] + 'threshold'
 
 
 def execute(paths):
@@ -93,7 +94,7 @@ def sav(threshold, paths):
                          'measure area #0\n')
     chimera_script.close()
 
-    output = subprocess.check_output(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
+    output = subprocess.check_output(['chimera', '--nogui', chimera_script.name])
     volume, surface_area = parse_sav(output)
 
     os.remove(chimera_script.name)

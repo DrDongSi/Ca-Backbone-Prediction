@@ -30,7 +30,7 @@ def execute(paths):
         prediction
     """
 
-    copyfile(os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/bounding_box.ent', paths['bounding_box'])
+    copyfile(os.path.dirname(__file__) + '/bounding_box.ent', paths['bounding_box'])
 
     chimera_script = open(paths['output'] + 'resample.cmd', 'w')
 
@@ -60,21 +60,21 @@ def execute(paths):
         chimera_script.write('open ' + paths['input'] + '\n'
                          'cofr models\n'
                          'cofr fixed\n'
-                         'open ' + paths['bounding_box'] + '\n'                         
+                         'open ' + paths['bounding_box'] + '\n'
                          'move cofr mod #1\n'
                          'write relative #0 #1 ' + paths['bounding_box_centered'] + '\n'
                          'open ' + paths['bounding_box_centered'] + '\n'
-                         'molmap #2 6 gridSpacing 1\n'                        
+                         'molmap #2 6 gridSpacing 1\n'
                          'sel #0\n'
                          'vop resample sel onGrid #2.1\n'
                          'volume #3 save ' + paths['cleaned_map'])
-                     
+
     chimera_script.close()
 
     script_finished = False
     while not script_finished:
         try:
-            subprocess.run(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
+            subprocess.run(['chimera', '--nogui', chimera_script.name])
             script_finished = True
         except FileNotFoundError as error:
             if not create_symbolic_link():
