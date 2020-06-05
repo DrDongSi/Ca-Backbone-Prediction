@@ -9,6 +9,13 @@ In order to run the backbone prediction we need to install all required Python p
 
 Additionally, we need to have Chimera installed on the system and a symbolic link to the chimera binary file in `/usr/local/bin/chimera` must exist.
 
+This program is meant to be executed on Linxu/MacOS. Window Users can potentially use Ubuntu and follow the steps above to run it.
+Additionally, for setting up the symbolic link.
+1. Download Ubuntu, use the application.
+2. Create the directory for chimera under /usr/local/bin (mkdir chimera)
+3. Use the symbolic link command which may require permissions. (sudo ln -s /usr/local/bin/chimera ‘/mnt/c/Program Files/Chimera 1.1.4/bin’)
+- The link for the Chimera program can be located in a different place depending on where the user installed Chimera, as well as the version number.
+
 ## Usage
 
 The backbone prediction can be run by invoking the `main.py` script located in the root of the project. It requires two positional arguments:
