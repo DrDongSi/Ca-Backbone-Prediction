@@ -118,7 +118,6 @@ def is_threshold_provided(paths):
     if 'thresholds_file' in paths:
         emdb_id = paths['input'].split('/')[-2]
         with open(paths['thresholds_file']) as f:
-            print(f)
             thresholds = json.load(f)
 
         if emdb_id in thresholds:
