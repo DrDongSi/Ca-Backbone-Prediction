@@ -15,10 +15,12 @@ if __name__ == '__main__':
                         help='JSON file which contains the hide dust sizes')
     parser.add_argument('-b', '--debug', action='store_const', const=True, default=False,
                         help='Enter debug mode, where mrc files are kept, otherwise mrc files are deleted at end to save memory')
+    parser.add_argument('-p', '--chimera_path', metavar='Links', type=str,
+                        help='location that identifies where the chimera symbolic link is')
 
     args = parser.parse_args()
 
     args.input += '/' if args.input[-1] != '/' else ''
     args.output += '/' if args.output[-1] != '/' else ''
 
-    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing, args.hidedusts, args.debug)
+    run_predictions(args.input, args.output, args.thresholds, args.skip[0], args.check_existing, args.hidedusts, args.debug, args.chimera_path)
