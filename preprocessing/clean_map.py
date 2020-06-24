@@ -28,9 +28,9 @@ def execute(paths):
     paths: dict
         Contains relevant paths for input and output files for the current
         prediction
-    """
-
-    copyfile(os.getcwd() + '/Ca-Backbone-Prediction/preprocessing/bounding_box.ent', paths['bounding_box'])
+	"""
+    # remove the Ca-Backbone-Prediction from the copyfile
+    copyfile(os.getcwd() + '/preprocessing/bounding_box.ent', paths['bounding_box'])
 
     chimera_script = open(paths['output'] + 'resample.cmd', 'w')
 
@@ -74,28 +74,14 @@ def execute(paths):
     script_finished = False
     while not script_finished:
         try:
-            subprocess.run(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
+            # Changed the chimera path to an input
+            subprocess.run([paths['chimera_path'], '--nogui', chimera_script.name])
             script_finished = True
         except FileNotFoundError as error:
-            if not create_symbolic_link():
-                raise error
+            raise error
+            #if not create_symbolic_link():
+                #raise error
 
     os.remove(chimera_script.name)
 
-
-def create_symbolic_link():
-    """Creates symbolic link to chimera bin in /usr/local/bin if user wants to
-
-    Returns
-    -------
-    link_created: bool
-        Indicates whether or not the symbolic link was created
-    """
-    print('It looks like there is no link to chimera in /usr/local/bin')
-    if input('Do you want to create one? (y/n) ') in ['y', 'yes']:
-        chimera_bin = input('Enter path to chimera bin file: ')
-        subprocess.run(['ln', '-s', chimera_bin, '/usr/local/bin/chimera'])
-
-        return True
-    else:
-        return False
+# Removing the function, as the chimera link parameter should handle the symbolic link.
