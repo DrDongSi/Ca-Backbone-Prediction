@@ -29,7 +29,7 @@ PREDICTION_PIPELINE = [
 ]
 
 
-def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug):
+def run_predictions(input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug, chimera_path):
     """Creates thread pool which will concurrently run the prediction for every
     protein map in the 'input_path'
 
@@ -52,9 +52,13 @@ def run_predictions(input_path, output_path, thresholds_file, num_skip, check_ex
     check_existing: bool
         If set prediction steps are only executed if their results are not
         existing in the output path yet
+		
+    chimera_path: str
+	    Path to indicate the location of the symbolic link to the chimera
+		binary file
     """
     # Create list of parameters for every prediction
-    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug)
+    params_list = [(emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug, chimera_path)
                    for emdb_id in filter(lambda d: os.path.isdir(input_path + d), os.listdir(input_path))]
 
     start_time = time()
@@ -94,8 +98,8 @@ def run_prediction(params):
         file, and execution time respectively
     """
     # Unpack parameters
-    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug = params
-    paths = make_paths(input_path, emdb_id, thresholds_file, hidedusts_file)
+    emdb_id, input_path, output_path, thresholds_file, num_skip, check_existing, hidedusts_file, debug, chimera_path = params
+    paths = make_paths(input_path, emdb_id, thresholds_file, hidedusts_file, chimera_path)
 
     start_time = time()
     for prediction_step in PREDICTION_PIPELINE:
@@ -129,15 +133,16 @@ def run_prediction(params):
             os.remove(paths['helix_confidence'])
             os.remove(paths['backbone_confidence'])
             os.remove(paths['ca_confidence'])
+            print('removed preprocessing and CNN files, maps and confidence') # Simple print statement to indicate removal of files
         except:
             pass
 
     return emdb_id, paths['fragments_merged'], paths['ground_truth'], time() - start_time
 
 
-def make_paths(input_path, emdb_id, thresholds_file, hidedusts_file):
+def make_paths(input_path, emdb_id, thresholds_file, hidedusts_file, chimera_path):
     """Creates base paths dictionary with density map, ground truth, and
-    optionally the thresholds file"""
+    optionally the thresholds file and chimera symbolic link"""
     mrc_file = get_file(input_path + emdb_id, ['mrc', 'map'])
     gt_file = get_file(input_path + emdb_id, ['pdb', 'ent'])
     # Directory that contains paths to all relevant files. This will be
@@ -146,12 +151,18 @@ def make_paths(input_path, emdb_id, thresholds_file, hidedusts_file):
         'input': input_path + emdb_id + '/' + mrc_file,
         'ground_truth': input_path + emdb_id + '/' + gt_file,
     }
-
+	
+    # Default path for chimera
+    paths['chimera_path'] = "/usr/bin/chimera"
+	
     if thresholds_file is not None:
         paths['thresholds_file'] = thresholds_file
 
     if hidedusts_file is not None:
         paths['hidedusts_file'] = hidedusts_file
+		
+    if chimera_path is not None:
+        paths['chimera_path'] = chimera_path
 
     return paths
 
