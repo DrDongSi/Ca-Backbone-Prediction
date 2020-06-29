@@ -7,7 +7,7 @@ Deep Learning for Cα Backbone Prediction from High Resolution CryoEM Data
 ## Installing Required Packages
 In order to run the backbone prediction we need to install all required Python packages (Python version of 3.5 or higher is required). This can be done by creating a virtual environment with `python3 -m venv env` and activating it with `source ./env/bin/activate`. Once the virtual Python environment is activated, the required packages can be installed with pip using `pip install -r requirements.txt`.
 
-Additionally, we need to have Chimera installed on the system and a symbolic link to the chimera binary file in `/usr/local/bin/chimera` must exist.
+Additionally, we need to have Chimera installed on the system and a symbolic link to the chimera binary file in `/usr/bin/chimera` must exist.
 
 ## Usage
 
@@ -20,7 +20,7 @@ The backbone prediction can be run by invoking the `main.py` script located in t
 
 In addition to the input and output path we can also provide a JSON file containing threshold values for each protein using `-t THRESHOLD_FILE `. If this file is not provided threshold values are determined automatically which can lead to worse prediction results.
 
-Another optional JSON file that can be passed is the hide dusts json file using `-d HIDEDUSTS_FILE`. If this file is not provided results can be slightly worse due to dust noise. 
+Another optional JSON file that can be passed is the hide dusts json file using `-d HIDEDUSTS_FILE`. If this file is not provided results can be slightly worse due to dust noise.
 
 An optional flag `-s` followed by a number `n` can be passed as an argument to skip the first `n` prediction steps.
 > Skipping prediction steps is only possible if the results of the skipped steps are already available in the output path
@@ -28,6 +28,9 @@ An optional flag `-s` followed by a number `n` can be passed as an argument to s
 Another optional flag `-c` can be set if you don't want to re-predict protein maps for which all/part of the results are already available in the output path. If set only prediction steps for which the results are not there yet are executed.
 
 Another optional flag `-b` can be set if you want to keep mrc files for debugging purposes. Note: This will take up a lot more memory.
+
+Another optional flag `-p` can be set to change the location of the symbolic link to the chimera binary file. If it is not set, it will default to `/usr/bin/chimera`.
+> The optional flags [-t, -d, -p] need to be passed as absolute paths
 
 An example command to execute the prediction could therefore be the following.
 
@@ -77,6 +80,8 @@ During the execution all prediction steps are run and the artifacts created by e
 After the execution finished the folder structure should look as following.
 
 <img src="https://i.ibb.co/XVKX1q7/folder-structure2.png" alt="folder-structure2" border="0">
+
+> The folder structure will only contain the preprocessing and cnn folders if the debug flag is set
 
 The final prediction is stored in the **6272.pdb** file. The created backbone trace is shown in the following image.
 

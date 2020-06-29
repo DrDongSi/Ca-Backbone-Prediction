@@ -33,7 +33,6 @@ def execute(paths):
     level was provided by the user"""
     if is_threshold_provided(paths):
         return
-
     map_data = deepcopy(mrcfile.open(paths['cleaned_map'], mode='r').data).ravel()
     num_non_zero_values = count_values(map_data, 0)
 
@@ -93,7 +92,7 @@ def sav(threshold, paths):
                          'measure area #0\n')
     chimera_script.close()
 
-    output = subprocess.check_output(['/usr/local/bin/chimera', '--nogui', chimera_script.name])
+    output = subprocess.check_output([paths['chimera_path'], '--nogui', chimera_script.name])
     volume, surface_area = parse_sav(output)
 
     os.remove(chimera_script.name)
