@@ -1,4 +1,4 @@
-Copyright (c) 2020, Data Analysis & Intelligent Systems (DAIS) Group
+Copyright (c) 2020, Data Analysis & Intelligent Systems (DAIS) Group,
 All rights reserved.
 
 DAIS Copyright and Disclaimer Notice
