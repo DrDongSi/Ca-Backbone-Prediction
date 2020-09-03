@@ -11,5 +11,5 @@ It is not allowed to revise or amend the provided products or extract only parts
 Likewise it is not allowed to grant sublicences to third party.
 
 CONTACT
-dais-group@uw.edu,
-dongsi@uw.edu
+dais-group@uw.edu, 
+DAIS @University of Washington
